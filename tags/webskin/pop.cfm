@@ -89,7 +89,7 @@
 	<!--- Clean up the title and message --->
 	<cfset session.aGritterMessages[thistag.thismessage].title = replace(session.aGritterMessages[thistag.thismessage].title,"&nbsp;"," ","ALL") />
 	<cfset session.aGritterMessages[thistag.thismessage].title = reReplace(session.aGritterMessages[thistag.thismessage].title,"[\r\n]"," ","ALL") />
-	<cfset session.aGritterMessages[thistag.thismessage].message = replace(session.aGritterMessages[thistag.thismessage].message,"&nbsp;"," ","ALL") />
+	<cfset session.aGritterMessages[thistag.thismessage].message = jsstringFormat(replace(session.aGritterMessages[thistag.thismessage].message,"&nbsp;"," ","ALL")) />
 	<cfset session.aGritterMessages[thistag.thismessage].message = reReplace(session.aGritterMessages[thistag.thismessage].message,"[\r\n]"," ","ALL") />
 	
 	<!--- Pass the message back to the tag contents --->
