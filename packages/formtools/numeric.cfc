@@ -13,32 +13,43 @@
 		<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 
 		<cfset var html = "" />
-		
+		<cfset var result = "" />
 		
 		<cfparam name="arguments.stMetadata.ftIncludeDecimal" default="true">
 		<cfparam name="arguments.stMetadata.ftCurrencySymbol" default="">
 		<cfparam name="arguments.stMetadata.ftPrefix" default="">
 		<cfparam name="arguments.stMetadata.ftSuffix" default="">
 		<cfparam name="arguments.stMetadata.ftMask" default="">
-		
-		<cfif len(arguments.stMetadata.ftMask)>
-			<cfset arguments.stMetadata.value = trim(NumberFormat(arguments.stMetadata.value, arguments.stMetadata.ftMask))>
-		<cfelse>
-			<!--- This is for legacy. You should use just ftPrefix and ftSuffix --->
-			<cfif len(arguments.stMetadata.ftCurrencySymbol)>
-				<cfset arguments.stMetadata.ftPrefix = arguments.stMetadata.ftCurrencySymbol />
-			</cfif>
+		<cfparam name="arguments.stMetadata.dbPrecision" default="">
 
-			<cfif stMetadata.ftIncludeDecimal>
-				<cfset arguments.stMetadata.value = DecimalFormat(arguments.stMetadata.value)>
-			<cfelse>
-				<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value)>
-			</cfif>
+		<!--- This is for legacy. You should use just ftPrefix and ftSuffix --->
+		<cfif len(arguments.stMetadata.ftCurrencySymbol)>
+			<cfset arguments.stMetadata.ftPrefix = arguments.stMetadata.ftCurrencySymbol />
 		</cfif>
 		
-		<cfsavecontent variable="html">
-			<cfoutput><input type="text" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#arguments.stMetadata.ftPrefix##arguments.stMetadata.value##arguments.stMetadata.ftSuffix#" <cfif structKeyExists(arguments.stMetadata,'ftStyle')>style="#arguments.stMetadata.ftstyle#"</cfif> class="textInput #arguments.stMetadata.ftclass#" /></cfoutput>
-		</cfsavecontent>
+		
+		<cfif len(arguments.stMetadata.dbPrecision)>
+			<cfset result = formatNumeric(arguments.stMetadata.value, listLast(arguments.stMetadata.dbPrecision), arguments.stMetadata.ftPrefix)>
+			
+			<cfsavecontent variable="html">
+				<cfoutput><input type="text" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#result#" <cfif structKeyExists(arguments.stMetadata,'ftStyle')>style="#arguments.stMetadata.ftstyle#"</cfif> class="textInput #arguments.stMetadata.ftclass#" /></cfoutput>
+			</cfsavecontent>
+		<cfelse>
+			
+			<cfif len(arguments.stMetadata.ftMask)>
+				<cfset arguments.stMetadata.value = trim(NumberFormat(arguments.stMetadata.value, arguments.stMetadata.ftMask))>
+			<cfelseif isNumeric(arguments.stMetadata.value)>
+	
+				<cfif stMetadata.ftIncludeDecimal>
+					<cfset arguments.stMetadata.value = DecimalFormat(arguments.stMetadata.value)>
+				<cfelse>
+					<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value)>
+				</cfif>
+			</cfif>
+			<cfsavecontent variable="html">
+				<cfoutput><input type="text" name="#arguments.fieldname#" id="#arguments.fieldname#" value="#arguments.stMetadata.ftPrefix##arguments.stMetadata.value##arguments.stMetadata.ftSuffix#" <cfif structKeyExists(arguments.stMetadata,'ftStyle')>style="#arguments.stMetadata.ftstyle#"</cfif> class="textInput #arguments.stMetadata.ftclass#" /></cfoutput>
+			</cfsavecontent>
+		</cfif>
 		
 		<cfreturn html>
 	</cffunction>
@@ -57,24 +68,33 @@
 		<cfparam name="arguments.stMetadata.ftPrefix" default="">
 		<cfparam name="arguments.stMetadata.ftSuffix" default="">
 		<cfparam name="arguments.stMetadata.ftMask" default="">
+		<cfparam name="arguments.stMetadata.dbPrecision" default="">
 		
-		<cfif len(arguments.stMetadata.ftMask)>
-			<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value, arguments.stMetadata.ftMask)>
-		<cfelse>
-			<!--- This is for legacy. You should use just ftPrefix and ftSuffix --->
-			<cfif len(arguments.stMetadata.ftCurrencySymbol)>
-				<cfset arguments.stMetadata.ftPrefix = arguments.stMetadata.ftCurrencySymbol />
-			</cfif>
+		
+		<cfif len(arguments.stMetadata.dbPrecision)>
+			<cfset result = formatNumeric(arguments.stMetadata.value, listLast(arguments.stMetadata.dbPrecision), arguments.stMetadata.ftPrefix)>
 			
-			<cfif NOT stMetadata.ftIncludeDecimal>
-				<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value)>
+			<cfsavecontent variable="html">
+				<cfoutput>#result#</cfoutput>
+			</cfsavecontent>	
+		<cfelse>
+			<cfif len(arguments.stMetadata.ftMask)>
+				<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value, arguments.stMetadata.ftMask)>
+			<cfelse>
+				<!--- This is for legacy. You should use just ftPrefix and ftSuffix --->
+				<cfif len(arguments.stMetadata.ftCurrencySymbol)>
+					<cfset arguments.stMetadata.ftPrefix = arguments.stMetadata.ftCurrencySymbol />
+				</cfif>
+				
+				<cfif NOT stMetadata.ftIncludeDecimal>
+					<cfset arguments.stMetadata.value = NumberFormat(arguments.stMetadata.value)>
+				</cfif>
 			</cfif>
-		</cfif>
 		
-		<cfsavecontent variable="html">
-			<cfoutput>#arguments.stMetadata.ftPrefix##arguments.stMetadata.value##arguments.stMetadata.ftSuffix#</cfoutput>
-		</cfsavecontent>
-		
+			<cfsavecontent variable="html">
+				<cfoutput>#arguments.stMetadata.ftPrefix##arguments.stMetadata.value##arguments.stMetadata.ftSuffix#</cfoutput>
+			</cfsavecontent>
+		</cfif>	
 		<cfreturn html>
 	</cffunction>
 	
@@ -100,18 +120,8 @@
 		<!--- --------------------------- --->
 		<!--- Perform any validation here --->
 		<!--- --------------------------- --->
-		<cfset stResult.value = ReplaceNoCase(stResult.value, ",","","all")>
+		<cfset stResult.value = ReReplace( stResult.value, "[^0-9\.-]", "", "ALL" )>
 		
-		<cfif len(trim(arguments.stMetadata.ftPrefix))>
-			<cfset stResult.value = ReplaceNoCase(stResult.value, trim(arguments.stMetadata.ftPrefix), "","all")>
-		</cfif>
-		<cfif len(trim(arguments.stMetadata.ftSuffix))>
-			<cfset stResult.value = ReplaceNoCase(stResult.value, trim(arguments.stMetadata.ftSuffix), "","all")>
-		</cfif>
-		
-		
-		<cfset stResult.value = trim(stResult.value) />
-	
 		<!--- ----------------- --->
 		<!--- Return the Result --->
 		<!--- ----------------- --->
@@ -263,5 +273,63 @@
 		<cfreturn resultHTML />
 	</cffunction>
 	
+		
+		
+	<cffunction name="formatNumeric" access="public" output="false">
+		<cfargument name="value" />
+		<cfargument name="decimalplaces" default="2" />
+		<cfargument name="prefix" default="$" />
 	
+		<cfset var rem = 0>
+		<cfset var result = arguments.value>
+		<cfset var bNegative = false>
+		<cfset var mask = "">
+		<cfset var remPlaces = "">
+		
+		
+		<cfif findNoCase(".",result)>
+			<cfset result = ReReplace( result, "[^0-9\.-]", "", "ALL" )>
+			
+			<cfif not isNumeric(result)>
+				<cfset result = 0>
+			</cfif>
+			
+			<cfif result LT 0>
+				<cfset result = ReReplace( result, "[^0-9\.]", "", "ALL" )><!--- REMOVE THE NEGATIVE --->
+				<cfset bNegative = true>
+			</cfif>
+		
+		
+			<cfset rem = REVERSE(FIX(REVERSE(result))) />
+			
+		</cfif>	
+			
+		<cfif rem EQ 0>
+			<cfset remPlaces = 0>
+		<cfelse>
+			<cfset remPlaces = len(rem)>			
+		</cfif>
+		
+		
+		<cfif remPlaces GT arguments.decimalPlaces>
+			<cfset remPlaces = arguments.decimalPlaces>
+		<cfelseif arguments.prefix EQ "$" AND remPlaces LT 2>
+			<cfset remPlaces = 2><!--- Make sure we have at least 2 decimal places --->
+		</cfif>
+		<cfif remPlaces GT 0>
+			<cfset mask = ",.#repeatString('9',remPlaces)#">
+		<cfelse>
+			<cfset mask = ",">
+		</cfif>
+		<cfset result = "#arguments.prefix##numberFormat(result,mask)#">
+		
+		<cfif bNegative>
+			<cfset result = "-#result#">
+		</cfif>
+		
+		<cfreturn result>
+		
+		
+	</cffunction>
+
 </cfcomponent> 
