@@ -47,9 +47,14 @@
 	<cfparam name="attributes.onclick" default=""><!--- the js code to place in onclick --->
 	<cfparam name="attributes.ampDelim" default="&amp;"><!--- @@attrhint: the default ampersand delimiter as used by getLink --->
 	<cfparam name="attributes.rbkey" default="" /><!--- If set, FarCry will use the specified resource for @text and @title with the provided attribute values as the defaults --->
+	<cfparam name="attributes.bModal" default="false" /><!--- If set, FarCry will open the page as an iframed modal window --->
 
 	<cfset href = application.fapi.getLink(argumentCollection="#attributes#") />
-
+	
+	<cfif attributes.bModal>
+		<cfset attributes.onClick = listAppend( attributes.onClick , "$fc.openDialogJobSheet('#attributes.title#', '#href#');return false;" , ";" )>
+		<cfset href = "##" />
+	</cfif>
 
 	<!--- Are we mean to display an a tag or the URL only? --->
 	<cfif attributes.urlOnly EQ true>
@@ -86,6 +91,8 @@
 		<cfif len(attributes.onclick)>
 			<cfset tagoutput=tagoutput & ' onclick="#attributes.onclick#"'>
 		</cfif>
+		
+		
 		<cfset tagoutput=tagoutput & '>'>
 	</cfif>
 
