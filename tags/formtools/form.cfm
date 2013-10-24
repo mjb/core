@@ -58,7 +58,7 @@ It just ignores the inner ones.
 		<cfparam name="attributes.bFieldHighlight" default="true"><!--- Highlight fields when focused --->
 		<cfparam name="attributes.bFocusFirstField" default="false" /><!--- Focus on first form element. --->
 		<cfparam name="attributes.defaultAction" default="" /><!--- The default action to be used if user presses enter key on browser that doesn't fire onClick event of first button. --->
-		<cfparam name="attributes.autoSave" default="false" /><!--- Enter boolean to toggle default autosave values on properties --->
+		<cfparam name="attributes.autoSave" default="" /><!--- Enter boolean to toggle default autosave values on properties --->
 		<cfparam name="attributes.autoSaveToSessionOnly" default="false" /><!--- If there are any autosave fields, should they save to the session only? --->
 
 
@@ -72,7 +72,12 @@ It just ignores the inner ones.
 		
 		<!--- If we have not received an action url, get the default cgi.script_name?cgi.query_string --->
 		<cfif not len(attributes.action)>
-			<cfset attributes.Action = "#application.fapi.fixURL()#" />
+			<cfif request.mode.ajax>
+				<cfset attributes.Action = "#cgi.HTTP_REFERER#" />
+			<cfelse>
+				<cfset attributes.Action = "#application.fapi.fixURL()#" />
+			</cfif>
+			
 		</cfif>
 
 		
@@ -108,7 +113,7 @@ It just ignores the inner ones.
 		<cfset Request.farcryForm.bAjaxSubmission = "#attributes.bAjaxSubmission#" />
 		<cfset Request.farcryForm.lFarcryObjectsRendered = "" />	
 		<cfset Request.farcryForm.defaultAction = "#attributes.defaultAction#" />	
-		<cfset Request.farcryForm.autoSave = "" />	
+		<cfset Request.farcryForm.autoSave = "#attributes.autoSave#" />	
 		
 
 		<!--- Add form protection --->
@@ -244,7 +249,7 @@ It just ignores the inner ones.
 		<!--- If we have anything in the onsubmit, use jquery to run it --->
 		<skin:onReady>
 			<cfoutput>
-			$j('###attributes.Name#').submit(function(){	
+			$j('###attributes.Name#').submit(function(){
 				var valid = true;			
 				<cfif attributes.validation EQ 1>
 					if ( $j("###attributes.Name#").attr('fc:validate') == 'false' ) {
@@ -270,6 +275,7 @@ It just ignores the inner ones.
 					$fc.fv#attributes.Name#.focusInvalid();
 					return false;
 				}
+				
 		    });
 			<cfif len(Request.farcryForm.defaultAction)>
 				$j('###attributes.Name# input,select').on("keypress",function(e){
