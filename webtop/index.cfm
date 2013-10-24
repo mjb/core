@@ -18,12 +18,21 @@
 --->
 <cfprocessingdirective pageencoding="utf-8">
 
+<cfimport taglib="/farcry/core/tags/core/" prefix="core" />
 <cfimport taglib="/farcry/core/tags/admin" prefix="admin">
 <cfimport taglib="/farcry/core/tags/webskin" prefix="skin">
 
 <cfset request.fc.inWebtop = 1>
 
+<cfparam name="url.objectid" default="">
+<cfparam name="url.type" default="">
+<cfparam name="url.typename" default="">
+<cfparam name="url.view" default="">
+<cfparam name="url.bodyView" default="">
+<cfparam name="url.webtopID" default="">
 
+
+<cfif len(url.webtopID) OR not len(url.type)>
 <!--- get sections --->
 <cfset stWebtop = application.factory.oWebtop.getAllItems()>
 
@@ -79,29 +88,53 @@
 <!--- should use url variables first, then variables from webtop.xml, then default values --->
 <cfset stItem = application.factory.oWebtop.getItemDetails(stWebtop, url.id)>
 <cfif structKeyExists(stItem, "type")>
-	<cfparam name="defaultTypename" default="#stItem.type#" />
+	<cfset url.typename = stItem.type>
 </cfif>
 <cfif structKeyExists(stItem, "typename")>
-	<cfparam name="defaultTypename" default="#stItem.typename#" />
+	<cfset url.typename = stItem.typename>
 </cfif>
 <cfif structKeyExists(stItem, "view")>
-	<cfparam name="url.view" default="#stItem.view#" />
+	<cfset url.view = stItem.view>
 </cfif>
 <cfif structKeyExists(stItem, "bodyView")>
-	<cfparam name="url.bodyView" default="#stItem.bodyView#" />
+	<cfset url.bodyView = stItem.bodyView>
 </cfif>
 
-<cfparam name="defaultTypename" default="dmNavigation" />
-<cfparam name="url.type" default="#defaultTypename#" />
-<cfparam name="url.typename" default="#url.type#" />
-<cfparam name="url.objectid" default="" />
-<cfparam name="url.view" default="webtopPageStandard" />
-<cfparam name="url.bodyView" default="webtopBody" />
-<cfparam name="stItem.bodyInclude" default="" />
+<cfif NOT len(url.typename)>
+	<cfif structKeyExists(stItem, "type")>
+		<cfset url.typename = stItem.type>
+	<cfelse>
+		<cfset url.typename = "dmNavigation">
+	</cfif>
+<cfelse>
+	<cfset stItem.bodyInclude = "" />
+</cfif>
+<cfif NOT len(url.view)>
+	<cfif structKeyExists(stItem, "view")>
+		<cfset url.view = stItem.view>
+	<cfelse>
+		<cfset url.view = "webtopPageStandard">
+	</cfif>
+</cfif>
+<cfif NOT len(url.bodyView)>
+	<cfif structKeyExists(stItem, "bodyView")>
+		<cfset url.bodyView = stItem.bodyView>
+	<cfelse>
+		<cfset url.bodyView = "webtopBody">
+	</cfif>
+</cfif>
+
+<cfset url.type = url.typename>
+<!--- 
+<cfdump var="#url#">
+<cfdump var="#stItem#"><cfabort> --->
+	
+	<!--- execute the view on the type / object --->
+	<skin:view objectid="#url.objectid#" typename="#url.typename#" webskin="#url.view#" bodyInclude="#stItem.bodyInclude#" />
+<cfelse>
+	<cfinclude template="/index.cfm">
+</cfif>
 
 
-<!--- execute the view on the type / object --->
-<skin:view objectid="#url.objectid#" typename="#url.typename#" webskin="#url.view#" bodyInclude="#stItem.bodyInclude#" />
-
-
+<core:displayTray />
 <cfsetting enablecfoutputonly="false">
