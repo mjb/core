@@ -79,6 +79,19 @@
 		<cfreturn result />
 	</cffunction>
 	
+	
+	<cffunction name="compareStrings" returntype="struct" access="public" output="false" hint="Takes two strings and returns a left and right highlighted result">
+		<cfargument name="string1" type="string" required="true">
+		<cfargument name="string2" type="string" required="true">
+
+		<cfset var aResult = getDiff(arguments.string1,arguments.string2)>
+		<cfset var stResult = convertDiffToHighlights(aResult)>
+		
+		<cfreturn stResult>
+		
+	</cffunction>
+								
+	
 	<cffunction name="convertDiffToHighlights" returntype="struct" access="private" output="false" hint="Takes a diff array and returns a left and right highlighted result">
 		<cfargument name="aDiff" type="array" required="true" />
 		
@@ -211,12 +224,12 @@
 				<cfset stResult.different = compare(stResult.left,stResult.right) neq 0 />
 			</cfcase>
 			<cfcase value="integer">
-				<cfif len(stResult.left)>
+				<cfif isNumeric(stResult.left)>
 					<cfset stResult.leftHighlighted = round(stResult.left) />
 				<cfelse>
-					<cfset stResutl.leftHighlighted = stResult.left />
+					<cfset stResult.leftHighlighted = stResult.left />
 				</cfif>
-				<cfif len(stResult.right)>
+				<cfif isNumeric(stResult.right)>
 					<cfset stResult.rightHighlighted = round(stResult.right) />
 				<cfelse>
 					<cfset stResult.rightHighlighted = stResult.right />
@@ -227,13 +240,25 @@
 			<cfcase value="uuid,navigation">
 				<cfset stResult.leftHighlighted = "" />
 				<cfif len(stResult.left) AND isValid("uuid", stResult.left)>
+					<cftry>
 					<cfset stTemp = application.fapi.getContentObject(objectid=stResult.left) />
 					<cfset stResult.leftHighlighted = stTemp.label & " [" & application.stCOAPI[stTemp.typename].displayName & "]" & this.nl />
+					<cfcatch type="any">
+						<!--- ignore errors attempting to get the object and just use the value --->
+						<cfset stResult.leftHighlighted = stResult.leftHighlighted & stResult.left & this.nl />
+					</cfcatch>
+					</cftry>
 				</cfif>
 				<cfset stResult.rightHighlighted = "" />
 				<cfif len(stResult.right) AND isValid("uuid", stResult.right)>
+					<cftry>
 					<cfset stTemp = application.fapi.getContentObject(objectid=stResult.right) />
 					<cfset stResult.rightHighlighted = stTemp.label & " [" & application.stCOAPI[stTemp.typename].displayName & "]" & this.nl />
+					<cfcatch type="any">
+						<!--- ignore errors attempting to get the object and just use the value --->
+						<cfset stResult.rightHighlighted = stResult.rightHighlighted & stResult.right & this.nl />
+					</cfcatch>
+					</cftry>
 				</cfif>
 				<cfset stResult.different = compare(stResult.leftHighlighted,stResult.rightHighlighted) neq 0 />
 				<cfif stResult.different>
