@@ -74,17 +74,47 @@
 				
 				$j('div.webskin-tracer-link').click(function() {
 						var $id = $j(this).attr('traceid');	
-						var $width = $j('webskin##' + $id + '-webskin').width();
-						var $height = $j('webskin##' + $id + '-webskin').height();				
+						var $width = 30;
+						var $height = 30;
+						var $position = {};
+						var $positionNode = $j('webskin##' + $id + '-webskin').nextAll().not('webskin');				
 						
+						
+						var $comments = $j('webskin').contents().filter(function() {
+					        return this.nodeType == 8;
+					    });
+					  
+						
+						
+						
+						if ($positionNode.length === 0){
+							$positionNode = $j('webskin##' + $id + '-webskin').prevAll().not('webskin');
+						};					
+						
+						if ($positionNode.length === 0){
+							$positionNode = $j('webskin##' + $id + '-webskin').parents().not('webskin');	
+						};		
+						if ($positionNode.length === 0){
+							$positionNode = $j('body');		
+						};
+						$position = $positionNode.position();
+						$width = $positionNode.width();
+						$height = $positionNode.height();
+						
+						if ($width < 20){$width=120;};
+						if ($height < 20){$height=20;};
+							
 						$j('div.webskin-tracer').each(function (i) {
 							$j(this).css('display', 'none');							
 						});
 						$j('div.webskin-border').each(function (i) {
 							$j(this).removeClass("webskin-border").css('display', 'none');
-						});						
-						$j('div##' + $id).css('position', 'absolute').css('z-index', '9999').css('display', 'block');						
-						$j('div##' + $id + '-webskin-border').addClass("webskin-border").css('width', $width).css('height', $height).css('display', 'block');
+						});	
+											
+						$j('div##' + $id).css('left', $position.left);
+						$j('div##' + $id).css('top', $position.top)	;
+						$j('div##' + $id).css('position', 'absolute').css('z-index', '9998').css('display', 'block');		
+						$j('div##' + $id + '-webskin-border').addClass("webskin-border").css('width', $width).css('height', $height).css('display', 'block').css('z-index', '9999');
 				});	
 			</cfoutput>
 			</skin:onReady>

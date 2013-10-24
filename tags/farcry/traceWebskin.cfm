@@ -20,6 +20,10 @@
 <!--- @@description: A standard HTML div tag usefull when coding so that opening and closing cfoutput tags are not required thereby cleaning up output.  --->
 <!--- @@author: Matthew Bryant (mbryant@daemon.com.au) --->
 
+
+<cfimport taglib="/farcry/core/tags/webskin" prefix="skin" />
+
+
 <cfif thistag.executionMode eq "Start">
 	<cfparam name="attributes.objectid" /><!--- The objectid of the object being traced --->
 	<cfparam name="attributes.typename" /><!--- The typename of the object being traced --->
@@ -50,6 +54,8 @@
 		<cfset arrayAppend(request.aAncestorWebskinsTrace, stTrace) />	
 		<cfset arrayPos = arrayLen(request.aAncestorWebskinsTrace) />
 		<cfif attributes.bAllowTrace>
+		
+		<cfsavecontent variable="traceHTML">
 			<cfoutput>
 			<div id="#stTrace.traceID#" class="webskin-tracer" style="display:none;">
 				<div class="webskin-tracer-close" style="text-align:right;" onclick="$j('###stTrace.traceID#').css('display', 'none');$j('###stTrace.traceID#-webskin-border').css('display', 'none');"><a name="#stTrace.traceID#"><img src="#application.url.webtop#/thirdparty/gritter/images/gritter-close.png" /></a></div>			
@@ -81,13 +87,18 @@
 								</cfloop>
 							</td>
 						</tr>
-						<cfif structkeyexists(application.stCOAPI[stTrace.typename].stWebskins[stTrace.template],"postprocess") and len(application.stCOAPI[stTrace.typename].stWebskins[stTrace.template].postprocess)>
+						<cftry>
+<!--- 
+						<cfif structkeyexists(application.stCOAPI[stTrace.typename].stWebskins,stTrace.template) and len(application.stCOAPI[stTrace.typename].stWebskins[stTrace.template].postprocess)>
+ --->
+						<cfif isDefined("application.stCOAPI.#stTrace.typename#.stWebskins.#stTrace.template#.postprocess")>
 							<tr>
 								<th>Post-processing</th>
 								<td>#application.stCOAPI[stTrace.typename].stWebskins[stTrace.template].postprocess#</td>
 							</tr>
 						</cfif>
-					
+					<cfcatch type="any"><cfdump var="#cfcatch#"><cfoutput><h1>stTrace.typename:#stTrace.typename# #structKeyList(application.stCOAPI[stTrace.typename].stWebskins)# : #stTrace.template#</h1></cfoutput><cfabort>
+</cfcatch></cftry>
 						<cfif stTrace.cacheStatus EQ 1>
 							<cfif structKeyExists(application.stcoapi, stTrace.typename) AND application.stcoapi[stTrace.typename].bObjectBroker>										
 								<tr>
@@ -148,8 +159,19 @@
 					</div>
 				</div>
 			</div>
-			<webskin id="#stTrace.traceID#-webskin">
+			</cfoutput>
+			</cfsavecontent>
+			<skin:onReady>
+				<cfoutput>
+				$j("body").append('#jsstringFormat(traceHTML)#');
+				</cfoutput>
+			</skin:onReady>
+			
+			<cfoutput>
+			<webskin id="#stTrace.traceID#-webskin" title="<!--#stTrace.traceID#-->ccc">
 				<div id="#stTrace.traceID#-webskin-border" style="display:none;"></div>
+			</webskin>
+			
 			</cfoutput>
 		</cfif>
 	</cfif>
@@ -158,7 +180,7 @@
 <cfif thistag.executionMode eq "End">
 	<cfif isdefined("request.mode.tracewebskins") AND request.mode.traceWebskins EQ true AND (not isdefined("request.mode.ajax") or not request.mode.ajax)>
 		<cfif attributes.bAllowTrace>
-			<cfoutput></webskin></cfoutput>
+			<!--- <cfoutput></webskin></cfoutput> --->
 		</cfif>
 		
 		<cfset request.aAncestorWebskinsTrace[arrayPos].endTickCount = GetTickCount() />
