@@ -178,10 +178,25 @@
 	
 	<cffunction name="OnApplicationStart" access="public" returntype="boolean" output="false" hint="Fires when the application is first created.">
 
+		<cfset request.bFarcryOnApplicationStart = 1>
+		
+
+		<cfreturn true>
+		
+	</cffunction>
+	
+	<cffunction name="OnFarcryApplicationStart" access="public" returntype="boolean" output="false" hint="Fires when the application is first created.">
+
 		<cfset var qServerSpecific = queryNew("blah") />
 		<cfset var qServerSpecificAfterInit = queryNew("blah") />
 		<cfset var machineName = createObject("java", "java.net.InetAddress").localhost.getHostName() />
 		<cfset var tickBegin = getTickCount() />
+		
+		
+		<cfif structKeyExists(request, "bFarcryOnApplicationStart") OR not structKeyExists(request, "bFarcryOnRequestStart")>
+			<cfset request.bFarcryOnApplicationStart = 1>
+			<cfreturn true>
+		</cfif>
 		
 		<!--- intialise application scope --->
 		<cfset initApplicationScope() />
@@ -347,6 +362,12 @@
 		<cfparam name="request.fc" default="#structNew()#" />
 		<cfparam name="session.fc" default="#structNew()#" />
 		
+		<cfset request.bFarcryOnRequestStart = 1>
+		
+		<cfif structKeyExists(request, "bFarcryOnApplicationStart")>
+			<cfreturn true>
+		</cfif>
+		
 		<!--- Update the farcry application if instructed --->
 		<cfset farcryUpdateApp() />		
 		
@@ -399,6 +420,11 @@
 
 	<cffunction name="OnRequestEnd" access="public" returntype="void" output="false" hint="Fires after the page processing is complete.">
 		
+		<cfif structKeyExists(request, "bFarcryOnApplicationStart")>
+			<cfreturn />
+		</cfif>
+		
+		
 		<!--- project and plugin request processing --->
 		<cfif isdefined("application.sysinfo.aOnRequestEnd") and arraylen(application.sysinfo.aOnRequestEnd)>
 			<cfloop from="1" to="#arraylen(application.sysinfo.aOnRequestEnd)#" index="i">
@@ -433,6 +459,13 @@
 		
 		<cfset var stException = structnew() />
 		<cfset var oError = "" />
+		
+		
+		<cfif structKeyExists(request, "bFarcryOnApplicationStart")>
+			<cfheader statuscode="503" statustext="Service Unavailable" />
+			<cfoutput><h1>Application Restarting</h1><p>Please come back in a few minutes.</p></cfoutput>
+			<cfreturn />
+		</cfif>
 		
 		<!--- increase the request timeout a little, in case the error was caused by a request timeout --->
 		<cfif structkeyexists(server,"railo")>
@@ -517,15 +550,16 @@
 			<cfset url.updateapp = true>
 		</cfif>
 		
+		
 		<!--- force application start sequence to be single threaded --->
 		<cfif (NOT structkeyexists(application, "bInit") OR NOT application.binit) OR url.updateapp>
-			<cflock name="#application.applicationName#_init" type="exclusive" timeout="3" throwontimeout="true">
+			<cflock name="farcry_init" type="exclusive" timeout="0" throwontimeout="true">
 				<cfif (NOT structkeyexists(application, "bInit") OR NOT application.binit) OR url.updateapp>
 
 					<!--- set binit to false to block users accessing on restart --->
 					<cfset application.bInit =  false />
 					<cfset url.updateapp = true />
-					<cfset OnApplicationStart() />
+					<cfset OnFarcryApplicationStart() />
 					
 					<!--- If the updateall flag was on, we also need to deploy default schema updates --->
 					<cfif structkeyexists(url,"updateall")>
