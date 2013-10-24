@@ -760,21 +760,31 @@ default handlers
 		<cfargument name="stFields" required="true" type="struct">
 		<cfargument name="stFormPost" required="false" type="struct">		
 
-		<cfset var newLabel = "" />
-		
-		<cfset newLabel = autoSetLabel(stProperties=arguments.stProperties) />
-		
-		<cfif len(trim(newLabel))>
-			<cfset arguments.stProperties.label = newLabel />
-		</cfif>
-		
 		<cfset stProperties.datetimelastupdated = now() />
 		
 		<cfreturn stProperties>
 	</cffunction>
 	
 	
+	<cffunction name="AfterSave" access="public" output="false" returntype="struct" hint="Called from setData and createData and run after the object has been saved.">
+		<cfargument name="stProperties" required="yes" type="struct" hint="A structure containing the contents of the properties that were saved to the object.">
 	
+		<cfset var stUpd = structNew() />
+		
+		<cfset arguments.stProperties = super.afterSave(arguments.stProperties)>
+
+		<cfset newLabel = autoSetLabel(arguments.stProperties)>
+		<cfif len(trim(newLabel))>
+			<cfset stUpd.objectid = arguments.stProperties.objectid />
+			<cfset stUpd.typename = arguments.stProperties.typename />
+			<cfset stUpd.label = newLabel />
+			<cfset setData(stProperties="#stUpd#", bAudit="false", bAfterSave="false")>
+		</cfif>
+		
+		<cfreturn arguments.stProperties />
+	</cffunction>
+	
+		
  	<cffunction name="autoSetLabel" access="public" output="false" returntype="string" hint="Automagically sets the label">
 		<cfargument name="stProperties" required="true" type="struct">
 
@@ -783,9 +793,9 @@ default handlers
 			Otherwise it will look for title, then name and then anything with the substring Name.
 		 --->
 		<cfset var newLabel = "" />
-		
+
 		<cfif not isdefined("request.inthread") and structKeyExists(arguments.stProperties, "typename") AND application.stcoapi[arguments.stProperties.typename].bAutoSetLabel>
-			<cfset newLabel = getView(stObject=arguments.stProperties,template="displayLabel",alternateHTML="") />
+			<cfset newLabel = getView(typename="#arguments.stProperties.typename#", objectid="#arguments.stProperties.objectid#",template="displayLabel",alternateHTML="") />
 		</cfif>
 		
 		<cfreturn trim(newLabel) />
@@ -1559,10 +1569,16 @@ default handlers
 		<cfargument name="sqlwhere" required="false" default="">
 		<cfargument name="sqlorderby" required="false" default="label">
 		<cfset var qLibraryList=queryNew("ObjectID,Label") />
+		<cfset var stPropMetadata = application.fapi.getPropertyMetadata(typename="#getTypename()#", property="siteKey")>
 
 		<cfquery datasource="#application.dsn#" name="qLibraryList">
 		SELECT *
 		FROM #getTypename()#
+		
+		<cfif isStruct(stPropMetadata) AND structKeyExists(request.fc, "stSite")>
+			WHERE siteKey = <cfqueryparam cfsqltype="cf_sql_varchar" value="#request.fc.stSite.siteKey#">
+		</cfif>
+				
 		<cfif len(arguments.sqlwhere)>
 		WHERE #PreserveSingleQuotes(arguments.sqlwhere)#
 		</cfif>

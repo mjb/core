@@ -99,7 +99,7 @@
 							<td>
 								<cfif structKeyExists(application.stCOAPI,contentTypename)>
 									<cfif len(application.stCOAPI[contentTypename].icon)>
-										<i class="#application.stCOAPI[contentTypename].icon#"></i>
+										<i class="icon-#application.stCOAPI[contentTypename].icon#"></i>
 									<cfelse>
 										<i class="icon-file"></i>
 									</cfif>
@@ -132,7 +132,7 @@
 							<tr>
 								<td>
 									<cfif len(application.stCOAPI[contentTypename].icon)>
-										<i class="#application.stCOAPI[contentTypename].icon#"></i>
+										<i class="icon-#application.stCOAPI[contentTypename].icon#"></i>
 									<cfelse>
 										<i class="icon-file"></i>
 									</cfif>
@@ -162,15 +162,15 @@
 						<cfset aTypesUseInTree = objType.buildTreeCreateTypes(lAllTypes)>
 						<cfif ArrayLen(aTypesUseInTree)>
 					
-							<skin:loadJS id="fc-jquery" />
+							<!--- <skin:loadJS id="fc-jquery" />
 							<skin:loadJS id="msdropdown" baseHREF="#application.url.webtop#/thirdparty" lFiles="/msdropdown/js/uncompressed.jquery.dd.js" />
-							<skin:loadCSS id="msdropdown" baseHREF="#application.url.webtop#/thirdparty" lFiles="/msdropdown/dd.css" />
+								<skin:loadCSS id="msdropdown" baseHREF="#application.url.webtop#/thirdparty" lFiles="/msdropdown/dd.css" />
 							
 							<skin:onReady>
 								<cfoutput>
 									$j("##createContent").msDropDown();
 								</cfoutput>
-							</skin:onReady>
+							</skin:onReady> --->
 							
 									<select id="createContent" name="createContent" style="width:100%;" onChange="location = '#application.url.farcry#/conjuror/evocation.cfm?parenttype=dmNavigation&objectId=#stobj.objectid#&typename=' + $j('##createContent').val() + '&ref=#url.ref#';">
 										<cfif arrayLen(stobj.aObjectIDs)>
@@ -178,21 +178,37 @@
 										<cfelse>
 											<option value="">-- Attach Content --</option>
 										</cfif>
+										<optgroup label="-------------------Content Item---------------------"></optgroup>
 										
-										<cfloop index="i" from="1" to="#ArrayLen(aTypesUseInTree)#">
-											<cfif aTypesUseInTree[i].typename NEQ "dmNavigation">
-												<cfif len(application.stCOAPI[aTypesUseInTree[i].typename].icon)>
-													<cfset iconClass = "#application.stCOAPI[aTypesUseInTree[i].typename].icon#" />
-												<cfelse>
-													<cfset iconClass = "file" />
-												</cfif>
-												
-												<option value="#aTypesUseInTree[i].typename#" title="<i class='#iconClass#'></i>">#aTypesUseInTree[i].description#</option>
+										<cfset lTreeTypes = "">
+										<cfloop collection="#application.stcoapi#" item="iType">
+											<cfif application.fapi.getContentTypeMetadata(typename="#iType#", md="bUseInTree", default="false")>
+												<cfset lTreeTypes = listAppend(lTreeTypes, iType) />
 											</cfif>
 										</cfloop>
 										
+										<cfloop list="#lTreeTypes#" index="iType">
+											<cfif iType NEQ "dmNavigation" AND  iType NEQ "dmInclude">
+												<option value="#iType#">#application.fapi.getContentTypeMetadata(typename="#iType#", md="displayName", default="#iType#")#</option>
+											</cfif>
+										</cfloop>
+										
+										<optgroup label="-------------------Type Views---------------------"></optgroup>
+										
+										<cfloop collection="#application.stcoapi#" item="iType">
+											<cfset qWebskins = application.coapi.coapiAdmin.getWebskins(typename="#iType#", viewBinding="type", viewStack="body") />
+											
+											<cfloop query="qWebskins">
+												<cfif len(qWebskins.displayname)>
+													<cfset optionLabel = qWebskins.displayname>
+												<cfelse>
+													<cfset optionLabel = "#application.fapi.getContentTypeMetadata(typename='#iType#', md='displayName', default='#iType#')#:#qWebskins.methodname#">
+												</cfif>
+												<option value="#qWebskins.typename#:#qWebskins.methodname#">#optionLabel#</option>
+											</cfloop>
+										</cfloop>
+										
 									</select>
-							
 							
 						</cfif>
 					</cfif>
@@ -210,7 +226,7 @@
 							<td>
 								<cfif structKeyExists(application.stCOAPI,contentTypename)>
 									<cfif len(application.stCOAPI[contentTypename].icon)>
-										<i class="#application.stCOAPI[contentTypename].icon#"></i>
+										<i class="icon-#application.stCOAPI[contentTypename].icon#"></i>
 									<cfelse>
 										<i class="icon-file"></i>
 									</cfif>

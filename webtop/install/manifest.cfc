@@ -70,7 +70,7 @@
 		<cfset var coapiutilities = createobject("component","farcry.core.packages.coapi.coapiUtilities") />
 		<cfset var stRef = structnew() />
 		
-		<cfif fileExists("#GetDirectoryFromPath(GetCurrentTemplatePath())#nested_tree_objects.wddx")>
+		<!--- <cfif fileExists("#GetDirectoryFromPath(GetCurrentTemplatePath())#nested_tree_objects.wddx")>
 
 			<cffile action="read" file="#GetDirectoryFromPath(GetCurrentTemplatePath())#nested_tree_objects.wddx" variable="wddxTree" />
 			<cfwddx action="wddx2cfml" input="#wddxTree#" output="qTree" />
@@ -126,7 +126,43 @@
 					</cfloop>
 				</cfif>
 			</cfif>
+		</cfloop> --->
+		
+	
+		<cfdirectory action="list" directory="#GetDirectoryFromPath(GetCurrentTemplatePath())#/sql/" name="qSQLFiles" filter="*.sql" />
+		
+		<cfloop query="qSQLFiles">
+			<!--- <cfset stFindName = REFind('-',qSQLFiles.NAME,1,true)>
+			<cfset findNamePos = stFindName.pos[arrayLen(stFindName.pos)]>
+			<cfset iType = left(qSQLFiles.NAME,findNamePos-1)>
+			<cfoutput><p>#iType#</p></cfoutput> --->
+		<!--- 	<cfquery datasource="#arguments.dsn#" name="qTruncate">
+			truncate table #iType#;
+			</cfquery>
+			 --->
+			 
+			<cffile action="read"  file="#GetDirectoryFromPath(GetCurrentTemplatePath())#/sql/#qSQLFiles.NAME#" variable="importSQL">
+			
+	<!--- 	<cfset formattedImportSQL = REReplace(importSQL,"#chr(13)#|#chr(9)#","","all") > --->
+<!--- <cfoutput>#formattedImportSQL#</cfoutput><cfabort> --->
+
+			<cftry>
+				<cfquery datasource="#arguments.dsn#" name="qInsert">
+				#PreserveSingleQuotes(importSQL)#
+				</cfquery>
+	
+				<cfoutput><div>IMPORTED #qSQLFiles.NAME#</div></cfoutput>
+			
+			<cfcatch type="any">
+				<cfoutput><cfdump var="#cfcatch#" label="FAILED #qSQLFiles.NAME#" expand="false"></cfoutput>
+			</cfcatch>
+			</cftry>
+		
+			
 		</cfloop>
+	
+	
+
 		
 		<cfreturn result />
 	</cffunction>

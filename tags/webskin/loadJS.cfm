@@ -20,6 +20,18 @@
 	<cfparam name="attributes.bCombine" default=""><!--- Should the files be combined into a single cached js file. Passing true/false will override how it was registered. --->
 	<cfparam name="attributes.core" default="false"><!--- Set to true if this JS is part of core and should be loaded after other JS --->
 	
+	<cfif attributes.id EQ "jquery">
+		<cfset attributes.id = 'fc-jquery'>
+	</cfif>
+	<!--- 
+	<cfif attributes.id EQ "fc-jquery-ui">
+		<cfset attributes.id = 'jquery-ui'>
+	</cfif>
+	
+	<cfif attributes.id EQ "fc-bootstrap">
+		<cfset attributes.id = 'bootstrap'>
+	</cfif>
+	 --->
 	
 	<cfif len(trim(thisTag.generatedContent))>
 		<cfset attributes.append = "#attributes.append##thisTag.generatedContent#" />

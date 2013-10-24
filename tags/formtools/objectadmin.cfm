@@ -1256,7 +1256,7 @@
 					<ft:button value="toggle" text="" icon=" ,caret" dropdownToggle="true" type="button" />
 					
 					<cfoutput>
-						<div class="dropdown-menu">
+						<ul class="dropdown-menu">
 						
 						<cfif attributes.bPreviewCol>
 							<li>
@@ -1274,7 +1274,7 @@
 							</cfloop>
 						</cfif>
 						
-						</div>
+						</ul>
 					</cfoutput>
 				<cfoutput></div></cfoutput>
 				

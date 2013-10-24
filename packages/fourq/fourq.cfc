@@ -159,7 +159,8 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 					self.data("loadWebskinAjax",config);
 					
 					if (config.showIndicator == true) {
-						self.html('<div class="loading-indicator">' + config.indicatorText + '</div>');
+						$j(self).html('<i class="icon-spinner icon-spin icon-large"></i>&nbsp;&nbsp;'  + config.indicatorText);
+						<!--- self.html('<div class="loading-indicator">' + config.indicatorText + '</div>'); --->
 					}
 					
 					$j.ajax({
@@ -168,9 +169,9 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 						cache		: false,
 						timeout		: config.timeout*1000,
 						success		: function(msg){
-							if (config.showIndicator == true) {
+							<!--- if (config.showIndicator == true) {
 								self.html('');
-							}
+							} --->
 							self.html(msg);
 						},
 						cache		: true
@@ -275,7 +276,7 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 				</cfif>
 				<cfset stWebskin = application.fc.lib.objectbroker.getWebskin(objectid=stobj.objectid, typename=stobj.typename, datetimeLastUpdated=stobj.datetimeLastUpdated, template=arguments.template, hashKey="#arguments.hashKey#") />		
 				
-				<cfif len(stWebskin.webskinHTML)>			
+				<cfif stWebskin.bInCache>	
 					<cfset application.fapi.addRequestLog("Retrieved webskin from cache [#stobj.objectid#, #stobj.typename#, #arguments.template#, #stWebskin.webskinCacheID#]") />
 	
 					<!--- ONLY KEEP TRACK OF THE ANCESTRY IF SET TO FLUSHONOBJECTCHANGE OR TYPEWATCH --->
@@ -320,7 +321,7 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 					<cfset webskinPath = application.coapi.coapiadmin.getWebskinPath(typename=webskinTypename, template=arguments.template) />
 							
 					<cfif len(webskinPath)>
-						
+						<cftimer label="runView - [#webskinTypename#/#arguments.template#]">
 						<cfset stWebskin.webskinHTML = runView(
 															argumentCollection="#arguments#",
 															stobj="#stobj#", 
@@ -333,7 +334,7 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 															onExitProcess="#arguments.onExitProcess#",
 															dsn="#arguments.dsn#",
 															bAllowTrace="#arguments.bAllowTrace#") />
-						
+						</cftimer>
 					<cfelseif structKeyExists(arguments, "alternateHTML")>
 						<cfset stWebskin.webskinHTML = arguments.alternateHTML />
 					<cfelse>
@@ -757,10 +758,21 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 		<cfargument name="dbtype" type="string" required="false" default="#application.dbtype#">
 		<cfargument name="dbowner" type="string" required="false" default="#application.dbowner#">
 		
-		<cfset var stReturn = application.fc.lib.db.createData(typename=getTypePath(),stProperties=arguments.stProperties,objectid=arguments.objectid,dsn=arguments.dsn) />
+		<cfset var stReturn = StructNew()>
+		<cfset var stNew = StructNew()>
+		<cfset var prefix = "X">
+		
+		<!--- ADD siteKey if not already being set. --->
+   		<cfif structKeyExists(request.fc, "stSite")>
+			<cfif not structKeyExists(arguments.stProperties, "siteKey") OR not len(arguments.stProperties.siteKey)>
+				<cfset arguments.stProperties.siteKey = request.fc.stSite.siteKey>
+			</cfif>
+		</cfif>		
+		
+    	<cfset stReturn = application.fc.lib.db.createData(typename=getTypePath(),stProperties=arguments.stProperties,objectid=arguments.objectid,dsn=arguments.dsn) />
 		
 		<!--- only create a record in refObjects if one doesnt already exist --->
-		<cfif len(application.fapi.findType(objectId = stReturn.objectId)) eq 0><cflog file="debug" text="refObjects">
+		<cfif len(application.fapi.findType(objectId = stReturn.objectId)) eq 0>
 			<cfset bRefCreated = application.coapi.coapiutilities.createRefObjectID(objectID="#stReturn.objectid#", typename=getTypeName(), dsn=arguments.dsn, dbowner=arguments.dbowner, dbtype=arguments.dbtype) />
 		</cfif>
 		
@@ -768,6 +780,14 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 			<cflog text="#stReturn.message# #stReturn.results[arraylen(stReturn.results)].detail# [SQL: #stReturn.results[arraylen(stReturn.results)].sql#]" file="coapi" type="error" application="yes">
 		</cfif>
 		
+		<cfif application.fapi.getContentTypeMetadata(typename="#getTypeName()#", md="bGenerateMYOBID", default="false")>
+			<cfset stNew = getData(stReturn.objectID)>
+			<cfset prefix = application.fapi.getContentTypeMetadata(typename="#getTypeName()#", md="MYOBIDPrefix", default="X")>
+			<cfif not len(stNew.myobID)>
+				<cfset application.fapi.setData(typename="#stNew.typename#", objectid="#stNew.objectid#", myobID="#ucase( left( stNew.siteKey, 3 ) )#-#ucase(prefix)#-#stNew.uniqueID#", bAftersave="false")>
+			</cfif>
+		</cfif>
+
 		<cfparam name="arguments.stProperties.typename" default="#getTypename()#" />
 		<cfset application.fc.lib.objectbroker.flushTypeWatchWebskins(stObject=arguments.stProperties) />
 		
@@ -844,6 +864,11 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 				<cfif NOT arguments.bArraysAsStructs AND NOT arguments.bShallow>
 					<cfset addedtoBroker = application.fc.lib.objectbroker.AddToObjectBroker(stobj=stobj,typename=getTypeName())>
 				</cfif>
+				
+				
+				<cfset stObj.bReturnedFromObjectBroker = false />
+			<cfelse>
+				<cfset stObj.bReturnedFromObjectBroker = true />
 			</cfif>	
 
 		</cfif>
@@ -926,6 +951,7 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 			If the object is to be stored in the Database then run the appropriate gateway
 			----------------------------------------->	
 		   	<cfelse>
+				
 				<!--- Announce the save event to listeners --->
 				<cfset application.fc.lib.events.announce(	component = "fcTypes", eventName = "beforesave",
 															typename = arguments.stProperties.typename,
@@ -933,16 +959,26 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 															stProperties = arguments.stProperties,
 															bAudit = arguments.bAudit,
 															auditNote = arguments.auditNote) />
-				
+															
+															
 				<!--- Make sure we remove the object from the objectBroker if we update something --->
 			    <cfif structkeyexists(arguments.stProperties, "objectid")>
 				    <cfset application.fc.lib.objectbroker.RemoveFromObjectBroker(lObjectIDs=arguments.stProperties.ObjectID,typename=getTypeName())>
-			    </cfif>	
+				</cfif>	
+				<!--- ADD siteKey if not already being set. --->
+		   		<cfif structKeyExists(request.fc, "stSite")>
+					<cfif not structKeyExists(arguments.stProperties, "siteKey") OR not len(arguments.stProperties.siteKey)>
+						<cfset arguments.stProperties.siteKey = request.fc.stSite.siteKey>
+					</cfif>
+				</cfif>
 				
 				<!--- If this object is in the temporary session store, we need to include all the other properties in the session --->		
 				<cfif arguments.bSetDefaultCoreProperties AND structKeyExists(session, "TempObjectStore") AND  structKeyExists(Session.TempObjectStore, arguments.stProperties.ObjectID)>
 					<cfset StructAppend(arguments.stProperties, Session.TempObjectStore[arguments.stProperties.ObjectID],false)>	
 				</cfif>
+				    
+				
+				
 				
 		   		<cfset stResult = application.fc.lib.db.setData(stProperties=arguments.stProperties,typename=getTypePath(),dsn=arguments.dsn) />	   	
 		   		
@@ -978,9 +1014,39 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 		<cfset var aRelated = arraynew(1) />
 		<cfset var stRelated = structnew() />
 		<cfset var foundOtherJoin = false />
-
-
+		<cfset var stNew = "">	
+		<cfset var stMD = application.fapi.getContentTypeMetadata(typename="#arguments.stProperties.typename#")>
+		<cfset var iProp = "" />
+		<cfset var lRelatedObjectIDs = "">
+		<cfset var qRelatedObjectIDs = "">
+		
+		<cfset application.fc.lib.objectbroker.RemoveFromObjectBroker(lObjectIDs="#arguments.stProperties.objectid#",typename="#arguments.stProperties.typename#")>
 		<cfset application.fc.lib.objectbroker.flushTypeWatchWebskins(objectid=arguments.stProperties.objectid,typename=arguments.stProperties.typename) />
+	
+		<cfloop list="#structKeyList(stMD.stProps)#" index="iProp">
+			<cfif stMD.stProps[iProp].metadata.type EQ "uuid" AND structKeyExists(stProperties, iProp) AND len(stProperties[iProp])>
+				<cfset lRelatedObjectIDs = listAppend(lRelatedObjectIDs, stProperties[iProp])>
+			</cfif>
+		</cfloop>
+		<cfif len(lRelatedObjectIDs)>
+			<cfquery name="qRelatedObjectIDs">
+			SELECT objectid,typename
+			FROM refObjects
+			WHERE objectid IN (<cfqueryparam cfsqltype="cf_sql_varchar" list="true" value="#lRelatedObjectIDs#">)
+			</cfquery>
+			<cfloop query="qRelatedObjectIDs">
+				<cfset application.fc.lib.objectbroker.RemoveFromObjectBroker(lObjectIDs="#qRelatedObjectIDs.objectid#",typename="#qRelatedObjectIDs.typename#")>
+			</cfloop>
+		</cfif>
+			
+		<cfif application.fapi.getContentTypeMetadata(typename="#getTypeName()#", md="bGenerateMYOBID", default="false")>
+			<cfset stNew = getData(arguments.stProperties.objectID)>
+			<cfif not len(stNew.myobID)>
+				<cfset prefix = application.fapi.getContentTypeMetadata(typename="#getTypeName()#", md="MYOBIDPrefix", default="X")>
+				<cfset stResult = application.fapi.setData(typename="#stNew.typename#", objectid="#stNew.objectid#", myobID="#ucase( left( stNew.siteKey, 3 ) )#-#ucase(prefix)#-#stNew.uniqueID#", bAftersave="false",bSetDefaultCoreProperties ="false")>
+			</cfif>
+		</cfif>
+		
 		
 		<!------------------------------------------------------------------ 
 		IF THIS OBJECT HAS A STATUS PROPERTY SUBMITTED THEN CHANGE STATUS 
@@ -1103,8 +1169,9 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 		<cfset stResult.bSuccess = true>
 		<cfset stResult.message = "Object deleted successfully">
 		
-		<cfset stobj = getData(objectid=arguments.objectid)>
+		<!--- <cfset stobj = getData(objectid=arguments.objectid)> --->
 		
+		<cfset application.fc.lib.objectbroker.flushTypeWatchWebskins(objectid=arguments.objectid,typename=getTypeName()) />
 			
 	   	<!--- Make sure we remove the object from the TempObjectStore if we update something --->
 	   	<cfif structKeyExists(session, "TempObjectStore") AND structKeyExists(Session.TempObjectStore,arguments.ObjectID)>	
@@ -1126,8 +1193,6 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 		DELETE FROM #arguments.dbowner#farFU
 		WHERE refObjectID = '#arguments.objectID#'
 		</cfquery>
-		
-		<cfset application.fc.lib.objectbroker.flushTypeWatchWebskins(objectid=arguments.objectid,typename=getTypeName()) />
 		
 		<cfreturn stResult>
 	</cffunction>
@@ -1259,7 +1324,7 @@ So in the case of a database called 'fourq' - the correct application.dbowner va
 		<cfparam name="stReturnMetadata.bAutoSetLabel" default="true" />
 		<cfparam name="stReturnMetadata.bObjectBroker" default="false" />
 		<cfparam name="stReturnMetadata.lObjectBrokerWebskins" default="" />
-		<cfparam name="stReturnMetadata.objectBrokerWebskinCacheTimeout" default="1400" /> <!--- This a value in minutes (ie. 1 day) --->
+		<cfparam name="stReturnMetadata.objectBrokerWebskinCacheTimeout" default="14400" /> <!--- This a value in minutes (ie. 10 days) --->
  		<cfparam name="stReturnMetadata.excludeWebskins" default="" /> <!--- This enables projects to exclude webskins that may be contained in plugins. ---> 
  		<cfparam name="stReturnMetadata.fuAlias" default="#lcase(rereplace(stReturnMetadata.displayname,'[^\w]+','-','ALL'))#" /> <!--- This will store the alias of the typename that can be used by Friendly URLS ---> 
 		<cfparam name="stReturnMetadata.bSystem" default="false" />

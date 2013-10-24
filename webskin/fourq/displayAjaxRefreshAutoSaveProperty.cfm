@@ -28,8 +28,8 @@
 
 <cfparam name="url.property" type="string" /><!--- The name of the property we are updating. --->
 <cfparam name="url.prefix" default="" />
+<cfparam name="url.format" default="display" />
 
-<cfset request.hideLibraryWrapper = true />
 <cfset request.hideAutoSaveWrapper = true />
 
 <!--- WRAP IN CFSILENT TO AVOID EXTRANEOUS HIDDEN FIELDS DISPLAYED WHEN SIMPLY REFRESHING THE PROPERTY --->
@@ -39,6 +39,7 @@
 					objectID="#stobj.objectid#" 
 					wizardID="#url.wizardID#" 
 					lFields="#url.property#"
+					format="#url.format#"
 					r_stFields="stFields"
 					prefix="#url.prefix#" />
 	<cfelse>
@@ -55,6 +56,7 @@
 		<ft:object	typename="#stobj.typename#" 
 					objectID="#stobj.objectid#" 
 					lFields="#url.property#" 
+					format="#url.format#"
 					r_stFields="stFields"
 					stPropValues="#objPropValues#"
 					prefix="#url.prefix#" />

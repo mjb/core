@@ -4,7 +4,7 @@
 		<cfargument name="ui" type="any" required="true" hint="Provides interface to UI" />
 		
 		<cfset this.uicomponent = arguments.ui />
-		
+
 		<cfreturn this />
 	</cffunction>
 	
@@ -314,92 +314,92 @@
 		
 		<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Creating your project",progress=0.1) />
 		
-		
-		<!--- Extract skeleton to the project --->
-		<cfset copyFullDirectory(
-			source=expandpath("/" & replaceNoCase(arguments.skeleton, ".", "/", "all")),
-			destination=path.project,
-			intermediate=path.projects,
-			handleexisting="archive",
-			archive="#path.projects#/bkp-#arguments.applicationName#-#DateFormat(now(),'yyyy-mm-dd')#-#timeFormat(now(),'hh-mm-ss')#" ) />
-		
-		
-		<!--- Determing project webroot path and URL, and copy webroot files as necessary --->
-		<cfswitch expression="#arguments.projectInstallType#">
-			<cfcase value="subDirectory">
-				<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Copying your project to a subdirectory under the webroot",progress=0.2) />
-				
-				<cfset path.projectwebroot = "#path.webroot#/#arguments.applicationName#" />
-				<cfset urls.projectwebroot = "http://#cgi.server_name#/#arguments.applicationName#" />
-				
-				<cfif NOT bInstallDBOnly>
-					<!--- Copy webroot files into subdirectory --->
-					<cfset copyFullDirectory(
-						source="#path.project#/www",
-						destination="#path.webroot#/#arguments.applicationName#",
-						intermediate=path.projects,
-						archive="#path.webroot#/bkp-#arguments.applicationName#-#DateFormat(now(),'yyyy-mm-dd')#-#timeFormat(now(),'hh-mm-ss')#") />
-					
-					<!--- Remove existing project WWW archive, and archive the current --->
-					<cfif directoryExists("#path.project#/wwwCopiedToFolderUnderWebroot")>
-						<cfdirectory action="delete" directory="#path.project#/wwwCopiedToFolderUnderWebroot" recurse="true" />
-					</cfif>
-					<cfdirectory action="rename" directory="#path.project#/www" newdirectory="#path.project#/wwwCopiedToFolderUnderWebroot" />
-				</cfif>
-			</cfcase>
-			
-			<cfcase value="standalone">
-				<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Copying your project to the webroot",progress=0.2) />
-				
-				<cfset path.projectwebroot = path.webroot />
-				<cfset urls.projectwebroot = "http://#cgi.server_name#" />
-				
-				<cfif NOT bInstallDBOnly>
-					<!--- Copy webroot files into webroot --->
-					<cfset copyFullDirectory(
-						source="#path.project#/www",
-						destination=path.projectwebroot,
-						intermediate=path.projects,
-						handleexisting="replace",
-						archive="") />
-					
-					<!--- Remove existing project WWW archive, and archive the current --->
-					<cfif directoryExists("#path.project#/wwwCopiedToWebroot")>
-						<cfdirectory action="delete" directory="#path.project#/wwwCopiedToWebroot" recurse="true" />
-					</cfif>
-					<cfdirectory action="rename" directory="#path.project#/www" newdirectory="#path.project#/wwwCopiedToWebroot" />
-				</cfif>
-			</cfcase>
-			
-			<cfcase value="CFMapping">
-				<cfset path.projectwebroot = "#path.project#/www" />
-				<cfset urls.projectwebroot = "http://#cgi.server_name#" />
-				<!--- Leave as is --->
-			</cfcase>
-			
-			<cfcase value="webserverMapping">
-				<cfset path.projectwebroot = "#path.project#/www" />
-				<cfset urls.projectwebroot = "http://#cgi.server_name#" />
-				<!--- Leave as is --->
-			</cfcase>
-		</cfswitch>
-		
-		<!--- Update the constructor --->
-		<cfset updateFarcryConstructor(
-			applicationName=arguments.applicationName,
-			applicationDisplayName=arguments.displayName,
-			locales=arguments.locales,
-			DSN=arguments.dsn,
-			DBType=arguments.dbtype,
-			dbowner=arguments.dbowner,
-			plugins=arguments.plugins,
-			projectURL=urls.webroot,
-			webtopURL=urls.webtop,
-			updateappKey=arguments.updateappKey,
-			path=path) />
-		
-		<!--- Copy plugins webroot files --->
+
 		<cfif NOT bInstallDBOnly>
+			<!--- Extract skeleton to the project --->
+			<cfset copyFullDirectory(
+				source=expandpath("/" & replaceNoCase(arguments.skeleton, ".", "/", "all")),
+				destination=path.project,
+				intermediate=path.projects,
+				handleexisting="archive",
+				archive="#path.projects#/bkp-#arguments.applicationName#-#DateFormat(now(),'yyyy-mm-dd')#-#timeFormat(now(),'hh-mm-ss')#" ) />
+		
+			
+			<!--- Determing project webroot path and URL, and copy webroot files as necessary --->
+			<cfswitch expression="#arguments.projectInstallType#">
+				<cfcase value="subDirectory">
+					<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Copying your project to a subdirectory under the webroot",progress=0.2) />
+					
+					<cfset path.projectwebroot = "#path.webroot#/#arguments.applicationName#" />
+					<cfset urls.projectwebroot = "http://#cgi.server_name#/#arguments.applicationName#" />
+					
+					<cfif NOT bInstallDBOnly>
+						<!--- Copy webroot files into subdirectory --->
+						<cfset copyFullDirectory(
+							source="#path.project#/www",
+							destination="#path.webroot#/#arguments.applicationName#",
+							intermediate=path.projects,
+							archive="#path.webroot#/bkp-#arguments.applicationName#-#DateFormat(now(),'yyyy-mm-dd')#-#timeFormat(now(),'hh-mm-ss')#") />
+						
+						<!--- Remove existing project WWW archive, and archive the current --->
+						<cfif directoryExists("#path.project#/wwwCopiedToFolderUnderWebroot")>
+							<cfdirectory action="delete" directory="#path.project#/wwwCopiedToFolderUnderWebroot" recurse="true" />
+						</cfif>
+						<cfdirectory action="rename" directory="#path.project#/www" newdirectory="#path.project#/wwwCopiedToFolderUnderWebroot" />
+					</cfif>
+				</cfcase>
+				
+				<cfcase value="standalone">
+					<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Copying your project to the webroot",progress=0.2) />
+					
+					<cfset path.projectwebroot = path.webroot />
+					<cfset urls.projectwebroot = "http://#cgi.server_name#" />
+					
+					<cfif NOT bInstallDBOnly>
+						<!--- Copy webroot files into webroot --->
+						<cfset copyFullDirectory(
+							source="#path.project#/www",
+							destination=path.projectwebroot,
+							intermediate=path.projects,
+							handleexisting="replace",
+							archive="") />
+						
+						<!--- Remove existing project WWW archive, and archive the current --->
+						<cfif directoryExists("#path.project#/wwwCopiedToWebroot")>
+							<cfdirectory action="delete" directory="#path.project#/wwwCopiedToWebroot" recurse="true" />
+						</cfif>
+						<cfdirectory action="rename" directory="#path.project#/www" newdirectory="#path.project#/wwwCopiedToWebroot" />
+					</cfif>
+				</cfcase>
+				
+				<cfcase value="CFMapping">
+					<cfset path.projectwebroot = "#path.project#/www" />
+					<cfset urls.projectwebroot = "http://#cgi.server_name#" />
+					<!--- Leave as is --->
+				</cfcase>
+				
+				<cfcase value="webserverMapping">
+					<cfset path.projectwebroot = "#path.project#/www" />
+					<cfset urls.projectwebroot = "http://#cgi.server_name#" />
+					<!--- Leave as is --->
+				</cfcase>
+			</cfswitch>
+			
+			<!--- Update the constructor --->
+			<cfset updateFarcryConstructor(
+				applicationName=arguments.applicationName,
+				applicationDisplayName=arguments.displayName,
+				locales=arguments.locales,
+				DSN=arguments.dsn,
+				DBType=arguments.dbtype,
+				dbowner=arguments.dbowner,
+				plugins=arguments.plugins,
+				projectURL=urls.webroot,
+				webtopURL=urls.webtop,
+				updateappKey=arguments.updateappKey,
+				path=path) />
+		
+			<!--- Copy plugins webroot files --->
 			<cfloop list="#arguments.pluginwebroots#" index="pluginName">
 				<cfif directoryExists("#path.plugins#/#pluginName#/www")>
 					<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SETUP): Copying your plugins under the webroot",progress=0.3) />
@@ -414,6 +414,58 @@
 				</cfif>
 			</cfloop>
 		</cfif>
+		
+		
+		<cfset sqlDirectory = expandpath("/" & replaceNoCase(arguments.skeleton, ".", "/", "all"))>
+		
+		<cfset sqlFilePrefix = "DEPLOY-#arguments.dbtype#_">
+		<cfdirectory action="list" directory="#sqlDirectory#/install/sql/" name="qSQLFiles" filter="#sqlFilePrefix#*.sql" />
+		
+
+		<cfif qSQLFiles.recordCount>
+			
+			<cfloop query="qSQLFiles">
+				<cffile action="read"  file="#sqlDirectory#/install/sql/#qSQLFiles.NAME#" variable="SQL">
+				
+				<cftry>
+					<cfquery datasource="toroMYSQL" name="qInsert">
+					#PreserveSingleQuotes(SQL)#
+					</cfquery>
+				
+				<cfcatch type="any">
+					<cfdump var="#cfcatch#"><cfabort>
+
+				</cfcatch>
+				</cftry>
+			</cfloop>
+			
+			
+		</cfif>
+		
+		<cfset sqlFilePrefix = "INSERT-">
+		<cfdirectory action="list" directory="#sqlDirectory#/install/sql/" name="qSQLFiles" filter="#sqlFilePrefix#*.sql" />
+		
+
+		<cfif qSQLFiles.recordCount>
+			
+			<cfloop query="qSQLFiles">
+				<cffile action="read"  file="#sqlDirectory#/install/sql/#qSQLFiles.NAME#" variable="SQL">
+				
+				<cftry>
+					<cfquery datasource="toroMYSQL" name="qInsert">
+					#PreserveSingleQuotes(SQL)#
+					</cfquery>
+		
+				
+				<cfcatch type="any">
+					<cfdump var="#cfcatch#"><cfabort>
+				</cfcatch>
+				</cftry>
+			</cfloop>
+			
+			
+		</cfif>
+		<!--- 
 		
 		<!--- Deploy COAPI tables --->
 		<cfloop list="rules,types,schema" index="thispackage">
@@ -457,7 +509,9 @@
 		<cfset this.uiComponent.setProgress(progressmessage="#arguments.displayName# (SKELETON): Installing Skeleton Data...",progress=0.8) />
 		<cfset o = createObject("component", "#arguments.skeleton#.install.manifest") />
 		<cfset result = o.install(dsn=arguments.dsn,dbowner=arguments.dbowner,dbtype=arguments.dbtype,path=path,factory=oDB,stTableMetadata=stTableMetadata) />
-		
+		 --->
+		 
+		 
 		<!--- Update the farcry password --->
 		<cfquery datasource="#arguments.dsn#">
 			update		#arguments.dbowner#farUser
@@ -477,9 +531,12 @@
 		<cfset application.bInit = false />
 		
 		<!--- IF WE ONLY WANTED A DB INSTALL, WE NEED TO DELETE THE TEMPORARY APPLICATION --->
-		<cfif bInstallDBOnly>
-			<cfdirectory action="delete" directory="#path.project#" mode="777" recurse="yes" />
-		</cfif>
+		<!--- <cfif bInstallDBOnly>
+			<cftry>
+				<cfdirectory action="delete" directory="#path.project#" mode="777" recurse="yes" />
+			<cfcatch type="any"><!--- IGNORE ---></cfcatch>
+			</cftry>
+		</cfif> --->
 		
 		<!--- Return results --->
 		<cfset stResult.bSuccess = true />
@@ -882,7 +939,7 @@
 		<cfloop query="contents">
 		  <cfif contents.type eq "dir">
 		      <cfif contents.name eq ".svn">
-		          <cfdirectory action="delete" directory="#arguments.source#/#contents.name#" recurse="true" />
+		          <cftry><cfdirectory action="delete" directory="#arguments.source#/#contents.name#" recurse="true" /><cfcatch type="any"><!--- IGNORE ---></cfcatch></cftry>
 		      <cfelse>
 		          <cfset directoryRemoveSVN(arguments.source & "/" & contents.name) />
 		      </cfif>

@@ -494,6 +494,15 @@ object methods
 	<cffunction name="afterSave" access="public" output="false" returntype="struct" hint="Processes new type content">
 		<cfargument name="stProperties" type="struct" required="true" hint="The properties that have been saved" />
 		
+		
+		<cfset var newLabel = autoSetLabel(arguments.stProperties)>
+		<cfif len(trim(newLabel))>
+			<cfset stUpd.objectid = arguments.stProperties.objectid />
+			<cfset stUpd.typename = arguments.stProperties.typename />
+			<cfset stUpd.label = newLabel />
+			<cfset setData(stProperties="#stUpd#", bAudit="false", bAfterSave="false")>
+		</cfif>
+		
 		<cfset application.security.initCache() />
 		
 		<cfreturn arguments.stProperties />

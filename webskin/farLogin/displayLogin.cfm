@@ -143,6 +143,11 @@ FARCRY IMPORT FILES
 			</cfif>
 		</div><!-- /.btn-group -->
 	</cfoutput>
+		
+	<cfoutput>
+	<input type="hidden" name="siteKey" value="#request.fc.stSite.siteKey#" />
+	</cfoutput>
+				
 </ft:form>
 
 <skin:view typename="farLogin" template="displayFooterLogin" />

@@ -188,7 +188,9 @@
 			<cfset fileSetAccessMode(getDirectoryFromPath(destfile), "777") />
 		</cfif>
 		
-		<cffile action="move" source="#sourcefile#" destination="#destfile#" mode="664" nameconflict="overwrite" />
+		<cfif fileExists(sourcefile)>
+			<cffile action="move" source="#sourcefile#" destination="#destfile#" mode="664" nameconflict="overwrite" />
+		</cfif>
 	</cffunction>
 	
 	<cffunction name="ioCopyFile" returntype="void" access="public" output="false" hint="Copies the specified file between locations on a specific CDN, or between the CDN and the local filesystem">
@@ -220,7 +222,9 @@
 			<cfset fileSetAccessMode(getDirectoryFromPath(destfile), "777") />
 		</cfif>
 		
-		<cffile action="copy" source="#sourcefile#" destination="#destfile#" mode="664" nameconflict="overwrite" />
+		<cfif fileExists(sourcefile)>
+			<cffile action="copy" source="#sourcefile#" destination="#destfile#" mode="664" nameconflict="overwrite" />
+		</cfif>
 	</cffunction>
 	
 	<cffunction name="ioDeleteFile" returntype="void" output="false" hint="Deletes the specified file. Does not check that the file exists first.">

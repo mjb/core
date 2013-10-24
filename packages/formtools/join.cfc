@@ -126,7 +126,13 @@
 					<cfif len(arguments.stMetadata.ftFirstListLabel) AND NOT arguments.stMetadata.ftSelectMultiple>
 						<option value="">#arguments.stMetadata.ftFirstListLabel#</option>
 					</cfif>
-					<cfloop query="qLibraryList"><option value="#qLibraryList.objectid#"<cfif listFindNoCase(joinItems,qLibraryList.objectid)> selected="selected"</cfif>><cfif isDefined("qLibraryList.label")>#qLibraryList.label#<cfelse>#qLibraryList.objectid#</cfif></option></cfloop>
+					<cfloop query="qLibraryList">
+						<cfif qLibraryList.objectid EQ "*">
+							<optgroup label="#qLibraryList.label#">
+						<cfelse>
+							<option value="#qLibraryList.objectid#"<cfif listFindNoCase(joinItems,qLibraryList.objectid)> selected="selected"</cfif>><cfif isDefined("qLibraryList.label")>#qLibraryList.label#<cfelse>#qLibraryList.objectid#</cfif></option>
+						</cfif>
+					</cfloop>
 					</select>
 					<input type="hidden" id="#arguments.fieldname#" name="#arguments.fieldname#" value="" />
 					
@@ -181,7 +187,7 @@
 							<cfoutput>
 							
 							<cfif arguments.stMetadata.ftRenderType eq 'radio' and len(arguments.stMetadata.ftFirstListLabel)>
-								<label for="#arguments.fieldname#_none">
+								<label for="#arguments.fieldname#_none" class="checkbox">
 									<input type="#arguments.stMetadata.ftRenderType#" 
 										id="#arguments.fieldname#_none" 
 										name="#arguments.fieldname#" class="formCheckbox #arguments.stMetadata.ftclass#"
@@ -191,7 +197,7 @@
 								</label>
 							</cfif>
 							<cfloop query="qLibraryList">
-								<label for="#arguments.fieldname#_#replace(qLibraryList.objectid,'-','','ALL')#">
+								<label for="#arguments.fieldname#_#replace(qLibraryList.objectid,'-','','ALL')#" class="checkbox" style="display:table;">
 									<input type="#arguments.stMetadata.ftRenderType#" 
 										id="#arguments.fieldname#_#replace(qLibraryList.objectid,'-','','ALL')#" 
 										name="#arguments.fieldname#" class="formCheckbox #arguments.stMetadata.ftclass#"
@@ -203,10 +209,9 @@
 										value="#qLibraryList.objectid#" />
 									<skin:view objectid="#qLibraryList.objectid#" webskin="#arguments.stMetadata.ftLibrarySelectedWebskin#" alternateHTML="#qLibraryList.label#" />
 								</label>
-								<br class="clear" />
 							</cfloop>
 								<input type="hidden" id="#arguments.fieldname#" name="#arguments.fieldname#" value="" />
-								<br class="clear" />
+								
 							</cfoutput>
 							
 						<cfelse>

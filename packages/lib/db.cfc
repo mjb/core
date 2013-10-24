@@ -391,6 +391,7 @@
 		<cfset var stResult = "" />
 		<cfset var index = "" />
 		<cfset var savable = true />
+		<cfset var j = "" />
 		
 		<!--- incorporate formtool specific defaults --->
 		<cfif structkeyexists(arguments.data,"ftType") and isdefined("application.formtools.#arguments.data.ftType#.stProps")>
@@ -510,11 +511,16 @@
 		
 		<cfset var stReturn = StructNew()>
 		<cfset var logLocation = iif(listfindnocase(this.logChangeFlags,arguments.typename) or this.logChangeFlags eq "*","this.logLocation",DE("")) />
+		<cfset var errorMessage = "">
 		
 		<cfset stReturn = getGateway(dsn=arguments.dsn).createData(schema=getTableMetadata(arguments.typename),stProperties=stProperties,logLocation=logLocation) />
 		
 		<cfif NOT stReturn.bSuccess>
-			<cflog text="#stReturn.message# #stReturn.results[arraylen(stReturn.results)].detail# [SQL: #stReturn.results[arraylen(stReturn.results)].sql#]" file="coapi" type="error" application="yes" />
+			<cfset errorMessage = "#stReturn.message# #stReturn.results[arraylen(stReturn.results)].detail# ">
+			<cfif structKeyExists(stReturn.results[arraylen(stReturn.results)], "sql")>
+				<cfset errorMessage = "#errorMessage# [SQL: #stReturn.results[arraylen(stReturn.results)].sql#]">
+			</cfif>
+			<cflog text="#errorMessage#" file="coapi" type="error" application="yes" />
 		</cfif>
 		
     	<cfreturn stReturn />

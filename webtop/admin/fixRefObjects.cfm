@@ -65,7 +65,10 @@
 							<cfoutput>IGNORED #key# - bRefObjects has been set to false. RefObjects cleared.<br /><hr /></cfoutput>
 							
 						</cfif>
-						<cfcatch><cfoutput>Error fixing #key# - perhaps type has not been deployed #cfcatch.toString()#<br /><hr /></cfoutput></cfcatch>
+						<cfcatch>
+							<cfdump var="#cfcatch#" expand="false">
+							<cfoutput>Error fixing #key# - perhaps type has not been deployed #cfcatch.toString()#<br /><hr /></cfoutput>
+						</cfcatch>
 					</cftry>
 				</cfif>
 			</cfloop>

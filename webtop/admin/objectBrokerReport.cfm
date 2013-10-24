@@ -122,7 +122,7 @@ $Developer: Geoff Bowers (modius@daemon.com.au)$
 				<strong>Total Skins:</strong> #totalSkins#<br />
 				<strong>Avg Skins per object:</strong> <cfif totalObjects GT 0>#totalSkins/totalObjects#<cfelse>N/A</cfif><br />
 				<cfif len(maxSkinsObjectID)>
-					<p>For more details, paste the following into the "<strong>Scope Dump Utility</strong>":<br /> application.objectBroker.ieProcess.#maxSkinsObjectID#.STWEBSKINS</p>
+					<p>For more details, paste the following into the "<strong>Scope Dump Utility</strong>":<br /> application.objectBroker.#key#.#maxSkinsObjectID#.STWEBSKINS</p>
 				</cfif>
 			<cfelse>
 				<ft:button value="show webskin detail" selectedObjectID="#key#" bInPanel="true" />

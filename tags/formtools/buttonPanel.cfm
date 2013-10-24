@@ -15,13 +15,20 @@
 
 <cfif thistag.ExecutionMode EQ "Start">
 	
+	<cfparam  name="attributes.id" default="#application.fapi.getUUID()#">
 	<cfparam  name="attributes.class" default="form-actions">
 	<cfparam  name="attributes.style" default="">
+	<cfparam  name="attributes.autoSetPriority" default="false">
 	
-	<cfset bPrimaryDefined = false />
+	<cfif attributes.autoSetPriority>
+		<cfset bPrimaryDefined = false />
+	<cfelse>
+		<cfset bPrimaryDefined = true />
+	</cfif>
+	
 
 	<cfoutput>
-		<div class="buttonHolder #attributes.class#" style="#attributes.style#">
+		<div id="#attributes.id#" class="#attributes.class#" style="#attributes.style#">
 	</cfoutput>
 </cfif>
 

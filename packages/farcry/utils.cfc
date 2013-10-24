@@ -46,7 +46,7 @@
 												enableCache= true,
 												cachePath= "#application.path.cache#",
 												enableETags= false,
-												enableJSMin= true,
+												enableJSMin= false,
 												enableYuiCSS= true,
 												skipMissingFiles= true,
 												javaLoader= createObject("component", "farcry.core.packages.farcry.javaloader.JavaLoader"),

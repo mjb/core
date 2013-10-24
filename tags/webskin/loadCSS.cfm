@@ -19,6 +19,15 @@
 	<cfparam name="attributes.append" default=""><!--- any CSS to append to the end of the script block --->
 	<cfparam name="attributes.bCombine" default=""><!--- Should the files be combined into a single cached css file. Passing true/false will override how it was registered. --->
 	
+	<!--- 
+	<cfif attributes.id EQ "fc-jquery-ui">
+		<cfset attributes.id = 'jquery-ui'>
+	</cfif>
+	<cfif attributes.id EQ "fc-bootstrap">
+		<cfset attributes.id = 'bootstrap'>
+	</cfif> --->
+	
+	
 	<cfif len(trim(thisTag.generatedContent))>
 		<cfset attributes.append = "#attributes.append##thisTag.generatedContent#" />
 		<cfset thisTag.generatedContent = "" />

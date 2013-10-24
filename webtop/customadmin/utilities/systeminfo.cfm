@@ -32,6 +32,66 @@
 	</ft:fieldset>
 </ft:form>
 
+
+
+<skin:loadCSS>
+	<cfoutput>
+	tr.used {
+		background-color:green;
+	}
+	tr.unused {
+		background-color:red;
+		display:none;
+	}
+	</cfoutput>
+</skin:loadCSS>
+
+<cfoutput><hr></cfoutput>
+<skin:buildLink href="##" onClick="$j('tr.used').toggle();return false;" linkText="Show/Hide Used" />
+<skin:buildLink href="##" onClick="$j('tr.unused').toggle();return false;" linkText="Show/Hide Un-Used" />
+
+<cfloop collection="#application.stCoapi#" item="table">
+	<cfset qWebskins = application.stCoapi[table].qWebskins>
+
+
+
+	<cfif structKeyExists(application.fc.webskinLog, table)>
+
+
+		<cfoutput>
+		<h3>#table#</h3>
+		
+		<table class="objectAdmin">
+		</cfoutput>
+		
+		<cfoutput query="qWebskins">
+			<cfif listLast(qWebskins.DIRECTORY, "/") EQ table>
+				<cfif structKeyExists(application.fc.webskinLog, table) AND structKeyExists(application.fc.webskinLog[table], qWebskins.methodName)>
+					<cfset bUsed = application.fc.webskinLog[table][qWebskins.methodName]>
+					<cfset usedClass = "used">
+				<cfelse>
+					<cfset bUsed = 0>
+					<cfset usedClass = "unused">
+				</cfif>
+				
+				
+				<tr class="#usedClass#">
+					<td>#qWebskins.methodName#</td>
+					<td>
+						#bUsed#
+					</td>
+				</tr>
+			</cfif>
+		</cfoutput>
+		
+		<cfoutput>
+		</table>
+		</cfoutput>
+	
+	</cfif>
+</cfloop>
+
+
 <admin:footer />
 
 <cfsetting enablecfoutputonly="false" />

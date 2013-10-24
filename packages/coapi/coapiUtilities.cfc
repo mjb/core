@@ -400,9 +400,13 @@
 		<cfif len(arguments.typename)>
 			<!--- Just in case the whole package path has been passed in, we only need the actual typename --->
 			<cfset arguments.typename = listLast(arguments.typename,".") />
-		
-			<cfset oCO  = createObject("component", application.stcoapi[arguments.typename].packagePath) />
+			<cftry>
+			<cfset oCO  = application.fapi.getContentType(arguments.typename) /><!--- createObject("component", application.stcoapi[arguments.typename].packagePath) --->
 			<cfset stResult = oCO.getData(argumentCollection="#arguments#") />
+			<cfcatch type="any">
+				<cfthrow message="#cfcatch.message#: #structKeyList(application.stcoapi['#arguments.typename#'])#">
+			</cfcatch>
+			</cftry>
 		</cfif>
 		
 		<cfreturn stResult />

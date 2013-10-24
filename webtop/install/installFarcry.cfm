@@ -195,23 +195,24 @@ DETERMINE THE CURRENT VERSION OF FARCRY
 	<!--- Webtop --->
 	<cfset webtopPath = expandPath('/farcry/core/webtop') />
 	
-	
-	
+	<cfdump var="#form#"><cfabort>
+
 	
 	<cfoutput>#updateProgressBar(value="0.1", text="#form.displayName# (SETUP): Creating your project")#</cfoutput><cfflush>
 	
 		
 	<cfset oZip = createObject("component", "farcry.core.packages.farcry.zip") />
  
-	<cfdirectory action="create" directory="#farcryProjectsPath#/#form.applicationName#" mode="777" />
-	<cfset oZip.AddFiles(zipFilePath="#farcryProjectsPath#/#form.applicationName#-skeleton.zip", directory="#form.skeletonPath#", recurse="true", compression=0, savePaths="false") />
-	<cfset oZip.Extract(zipFilePath="#farcryProjectsPath#/#form.applicationName#-skeleton.zip", extractPath="#farcryProjectsPath#/#form.applicationName#", overwriteFiles="true") />
-	<cffile action="delete" file="#farcryProjectsPath#/#form.applicationName#-skeleton.zip" />
+	<cfif NOT form.bInstallDBOnly>
+		<cfdirectory action="create" directory="#farcryProjectsPath#/#form.applicationName#" mode="777" />
+		<cfset oZip.AddFiles(zipFilePath="#farcryProjectsPath#/#form.applicationName#-skeleton.zip", directory="#form.skeletonPath#", recurse="true", compression=0, savePaths="false") />
+		<cfset oZip.Extract(zipFilePath="#farcryProjectsPath#/#form.applicationName#-skeleton.zip", extractPath="#farcryProjectsPath#/#form.applicationName#", overwriteFiles="true") />
+		<cffile action="delete" file="#farcryProjectsPath#/#form.applicationName#-skeleton.zip" />
+	
+	
+		<cfset directoryRemoveSVN(source="#farcryProjectsPath#/#form.applicationName#") />
 
-
-	<cfset directoryRemoveSVN(source="#farcryProjectsPath#/#form.applicationName#") />
-
-
+	</cfif>
 
 
 

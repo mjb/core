@@ -84,7 +84,7 @@
 				<cfsavecontent variable="html">
 					
 					<cfoutput>
-						<div class="fieldsection optional">
+						<div class="fieldsection optional multiField">
 							<div class="fieldwrap">
 								<cfset tmpCount=0>
 								<cfloop query="qLibraryList">
@@ -103,7 +103,7 @@
 				<cfsavecontent variable="html">
 					
 					<cfoutput>
-						<div class="fieldsection optional">
+						<div class="fieldsection optional multiField">
 							<div class="fieldwrap">
 								<cfloop query="qLibraryList">
 									<input type="radio" name="#arguments.fieldname#" id="#arguments.fieldname#"  class="formCheckbox #IIF(qLibraryList.recordcount eq currentrow,DE(" #arguments.stMetadata.ftClass#"),DE(""))#" value="#qLibraryList.objectid#" <cfif listFindNoCase(valueList(qCurrentlyAssigned.objectid),qLibraryList.objectID)> checked="checked"</cfif> />

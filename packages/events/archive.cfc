@@ -53,6 +53,8 @@
 		<cfset stObj = arguments.oType.getData(objectid=arguments.stProperties.objectid,bUseInstanceCache=false) />
 		<cfset structappend(stProps,stObj,false) />
 		
+		<!--- <cfset application.fc.lib.objectbroker.RemoveFromObjectBroker(lObjectIDs=arguments.stProperties.objectid,typename=arguments.stProperties.typename)> --->
+		
 		
 		<!--- NEW CONTENT --->
 		<cfif structkeyexists(stObj,"bDefaultObject")>
