@@ -38,6 +38,8 @@ FARCRY IMPORT FILES
 <cfparam name="attributes.tags" default="" /><!--- Tags to identify message categories later --->
 <cfparam name="attributes.rbkey" default="general.message.#rereplace(attributes.title,'[^\w]','','ALL')#-#rereplace(attributes.message,'[^\w]','','ALL')#" /><!--- The resource path for this message. --->
 <cfparam name="attributes.variables" default="#arraynew(1)#" /><!--- Variables for resource translation --->
+<cfparam name="attributes.bShowOnNextRequest" default="false" /><!--- Delay the display of this message until the next request. Usefull when closing dialogs and so on --->
+
 
 <!--- legacy attribute --->
 <cfif structKeyExists(attributes,"bAutoHide")>
@@ -105,6 +107,10 @@ FARCRY IMPORT FILES
 		<cfset arrayAppend(session.aGritterMessages, stMessage) />
 	</cfif>
 
+
+	<cfif attributes.bShowOnNextRequest>
+		<cfset request.fc.bLocating = 1>
+	</cfif>
 	
 </cfif>
 <cfsetting enablecfoutputonly="false">
