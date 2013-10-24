@@ -382,7 +382,7 @@
 						<td class="class">#ucase(left(qTypes.class,1))##mid(qTypes.class,2,10)#</td>
 						<td class="name"><i class="#getIcon(qtypes.typename)# icon-fixed-width" style="font-size:16px;color:##777"></i> #qTypes.label#</td>
 						<td class="conflicts">
-							<a href="#application.url.webtop#/index.cfm?id=#url.id#&typename=farCOAPI&view=webtopPageModal&bodyview=webtopBodyConflicts&typepath=#qTypes.packagepath#" class="openindialog" data-title="#qTypes.label# Conflicts" id="#qTypes.typename#_conflicts">Resolve conflicts</a>
+							<skin:buildLink type="farCOAPI" view="webtopPageModal" bodyview="webtopBodyConflicts" urlParameters="typepath=#qTypes.packagepath#" class="openindialog" data-title="#qTypes.label# Conflicts" id="#qTypes.typename#_conflicts">Resolve conflicts</skin:buildLink>
 							<skin:tooltip id="#qTypes.typename#_conflicts" selector="###qTypes.typename#_conflicts" position="bottom" message="#qTypes.conflicts#" />
 						</td>
 						<td class="actions"><input type="checkbox" name="deploydefaults" value="#qTypes.packagepath#" /></td>

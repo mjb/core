@@ -28,7 +28,7 @@
 	</style>
 </cfoutput></skin:htmlHead>
 
-<ft:form target="_parent" action="#application.url.webtop#/index.cfm?id=admin.coapi.coapitools.coapioverview">
+<ft:form target="_parent" action="#application.url.webtop#/index.cfm?webtopID=944B13332F3147E186BE1630FD2D2BC9">
 	<cfoutput>
 		<input type="hidden" name="typename" value="#url.typepath#" />
 		<div class="">
