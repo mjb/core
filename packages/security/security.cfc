@@ -445,6 +445,7 @@
 		
 		<!--- Get users profile --->
 		<cfset session.dmProfile = oProfile.getProfile(userName=arguments.userid,ud=arguments.ud) />
+		<cfset session.dmProfile.lastLogin = now() />
 		<cfset stDefaultProfile = this.userdirectories[arguments.ud].getProfile(arguments.userid,duplicate(session.dmProfile)) />
 		<cfparam name="stDefaultProfile.override" default="false" />
 		<cfif not session.dmProfile.bInDB>
@@ -458,11 +459,10 @@
 			<cfset stDefaultProfile = this.userdirectories[arguments.ud].getProfile(userid=arguments.userid,stCurrentProfile=session.dmProfile) />
 			<cfparam name="stDefaultProfile.override" default="false" />
 			<cfset structappend(session.dmProfile,stDefaultProfile,stDefaultProfile.override) />
-			<cfset oProfile.setData(stProperties=session.dmProfile) />
 		<cfelseif stDefaultProfile.override>
 			<cfset structappend(session.dmProfile,stDefaultProfile,true) />
-			<cfset oProfile.setData(stProperties=session.dmProfile) />
 		</cfif>
+		<cfset oProfile.setData(stProperties=session.dmProfile) />
 	
 		<!--- i18n: find out this locale's writing system direction using our special psychic powers --->
         <cfif application.i18nUtils.isBIDI(session.dmProfile.locale)>
@@ -492,16 +492,16 @@
 		<!--- /DEPRECATED --->
 		
 		<!--- First login flag --->
-		<cfif createObject("component", application.stcoapi["farLog"].packagePath).filterLog(userid=session.security.userid,type="security",event="login").recordcount>
-			<cfset session.security.firstlogin = false />
-			
-			<!--- DEPRECATED --->
-			<cfset session.firstLogin = false />
-		<cfelse>
+		<cfif structkeyexists(session.security,"bDefaultObject") and session.security.bDefaultObject>
 			<cfset session.security.firstlogin = true />
 			
 			<!--- DEPRECATED --->
 			<cfset session.firstlogin = true />
+		<cfelse>
+			<cfset session.security.firstlogin = false />
+			
+			<!--- DEPRECATED --->
+			<cfset session.firstLogin = false />
 		</cfif>
 		
 		<!--- Log the result --->

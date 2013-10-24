@@ -22,7 +22,7 @@
  --->
 
 <cfcomponent extends="field" name="password" displayname="password" hint="Used to liase with password type fields"> 
-	<cfproperty name="ftRenderType" default="changepassword" hint="This formtool offers a number of ways to render the input. (changepassword, confirmPassword)" />
+	<cfproperty name="ftRenderType" default="changepassword" hint="This formtool offers a number of ways to render the input. (changepassword, confirmpassword, editpassword)" />
 	<cfproperty name="ftValidateOldMethod" hint="The function that will be used to validate the old property value on form submission" />
 	<cfproperty name="ftValidateNewMethod" hint="The function that will be used to validate the new property value on form submission" />
 	
@@ -47,7 +47,6 @@
 			<cfcase value="changepassword">
 				<cfsavecontent variable="html">
 					<cfoutput>
-								
 						<div class="multiField">
 							<ft:field label="Current password" labelAlignment="block" for="#arguments.fieldname#">
 								<input type="password" name="#arguments.fieldname#" id="#arguments.fieldname#" value="" class="textInput #arguments.stMetadata.ftclass#" style="#arguments.stMetadata.ftstyle#" />
@@ -79,7 +78,7 @@
 			<cfdefaultcase>
 				<cfsavecontent variable="html">
 					<cfoutput>
-						<input type="password" name="#arguments.fieldname#" id="#arguments.fieldname#" value="" class="textInput #arguments.stMetadata.ftclass#" style="#arguments.stMetadata.ftstyle#" />
+						<input type="password" name="#arguments.fieldname#" id="#arguments.fieldname#" value="<cfif arguments.stMetadata.ftRenderType eq 'editpassword'>#arguments.stMetadata.value#</cfif>" class="textInput #arguments.stMetadata.ftclass#" style="#arguments.stMetadata.ftstyle#" />
 					</cfoutput>
 				</cfsavecontent>
 			</cfdefaultcase>
@@ -133,7 +132,9 @@
 		<cfelseif structKeyExists(arguments.stFieldPost.stSupporting, "Confirm")>
 			
 			<!--- The new and confirm password must be non-blank and be equal including case --->
-			<cfif not len(arguments.stFieldPost.value) OR compare(arguments.stFieldPost.value,arguments.stFieldPost.stSupporting.Confirm)>
+			<cfif not len(arguments.stFieldPost.value)>
+				<cfset stResult = failed(value="", message="You have not entered a password") />
+			<cfelseif not len(arguments.stFieldPost.value) OR compare(arguments.stFieldPost.value,arguments.stFieldPost.stSupporting.Confirm)>
 				<cfset stResult = failed(value="", message="Your password confirmation did not match.") />
 			<cfelse>
 				<!--- Perform new-value validation --->

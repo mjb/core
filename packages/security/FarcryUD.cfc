@@ -21,6 +21,15 @@
 		</cfif>
 	</cffunction>
 	
+	<cffunction name="passwordIsStale" access="public" output="false" returntype="boolean" hint="Returns true if the password needs to be hashed">
+		<cfargument name="hashedPassword" type="string" required="true" hint="Hashed password" />
+		<cfargument name="password" type="string" required="true" hint="Source password" />
+		
+		<cfset var hashName = getOutputHashName() />
+
+		<cfreturn application.security.cryptlib.hashedPasswordIsStale(hashedPassword=arguments.hashedPassword,password=arguments.password,hashname=hashName) />
+	</cffunction>
+
 	<cffunction name="queryUserPassword" access="private" output="false" returntype="query" hint="Return a query of farUser rows that match the provided credentials">
 		<cfargument name="username" type="string" required="true" />
 		<cfargument name="password" type="string" required="true" />
@@ -31,7 +40,7 @@
 		
 		<!--- Find the user --->
 		<cfquery datasource="#application.dsn#" name="qUser">
-			select	objectid,userid,password,userstatus
+			select	objectid,userid,password,userstatus,failedLogins
 			from	#application.dbowner#farUser
 			where	userid=<cfqueryparam cfsqltype="cf_sql_varchar" value="#trim(arguments.username)#" />
 		</cfquery>
@@ -51,8 +60,9 @@
 				from qUser
 				where objectid = '#authenticatedObjectId#'
 			</cfquery>
+
 			<!--- Does the hashed password need to be updated? --->
-			<cfif application.security.cryptlib.hashedPasswordIsStale(hashedPassword=qUser.password,password=arguments.password,hashname=hashName)>
+			<cfif passwordIsStale(hashedPassword=qUser.password,password=arguments.password)>
 				<cfquery datasource="#application.dsn#">
 					update	#application.dbowner#farUser
 					set		password=<cfqueryparam cfsqltype="cf_sql_varchar" value="#application.security.cryptlib.encodePassword(password=arguments.password,hashname=hashName)#" />
@@ -83,6 +93,9 @@
 		<cfset var stResult = structnew() />
 		<cfset var stProperties = structnew() />
 		<cfset var qUser = "" />
+		<cfset var failedLogins = arraynew(1) />
+		<cfset var i = 0 />
+		<cfset var failureCount = 0 />
 		
 		<cfimport taglib="/farcry/core/tags/formtools" prefix="ft" />
 		
@@ -108,26 +121,30 @@
 			<cfset stResult.message = "" />
 			<cfset stResult.UD = "CLIENTUD" />
 			
+			<!--- Count failed logins --->
 	        <cfset dateTolerance = DateAdd("n","-#application.config.general.loginAttemptsTimeOut#",Now()) />
-	        
-   			<cfquery name="qLogAudit" datasource="#application.dsn#">
-		        select		count(datetimecreated) as numberOfLogin, max(datetimecreated) as lastlogindate, userid
-		        from		#application.dbowner#farLog
-		        where		type='security'
-		       				and event='loginfailed'
-		            		and datetimecreated >= <cfqueryparam value="#createODBCDateTime(dateTolerance)#" cfsqltype="cf_sql_timestamp" />
-		            		and userid = <cfqueryparam cfsqltype="cf_sql_varchar" value="#qUser.userid#_#this.key#" />
-		        group by	userid
-	        </cfquery>
-					
+	        <cfif isJSON(qUser.failedLogins)>
+		        <cfset failedLogins = deserializeJSON(qUser.failedLogins) />
+	        </cfif>
+	        <cfloop from="1" to="#arraylen(failedLogins)#" index="i">
+	        	<cfif failedLogins[i].timestamp gte dateTolerance>
+	        		<cfset failureCount = failureCount + 1 />
+	        	</cfif>
+	        </cfloop>
+			
 			<!--- Set the result --->
-			<cfif false and qLogAudit.numberOfLogin gte application.config.general.loginAttemptsAllowed>
+			<cfif failureCount gte application.config.general.loginAttemptsAllowed>
 				<!--- User is locked out due to high number of failed logins recently --->
 				<cfset stResult.authenticated = false />
 				<cfset stResult.message = "Your account has been locked due to a high number of failed logins. It will be unlocked automatically in #application.config.general.loginAttemptsTimeOut# minutes." />
+				<cfset application.fapi.getContentType("farUser").addLoginFailure(objectid=qUser.objectid,reason="Locked account due to failed logins") />
 			<cfelseif qUser.recordcount and qUser.userstatus eq "active">
 				<!--- User successfully logged in --->
 				<cfset stResult.authenticated = true />
+
+				<cfif qUser.failedLogins neq "[]">
+					<cfset application.fapi.getContentType("farUser").resetLoginFailures(objectid=qUser.objectid) />
+				</cfif>
 			<cfelseif qUser.recordcount>
 				<!--- User's account is disabled --->
 				<cfset stResult.authenticated = false />
@@ -136,6 +153,7 @@
 				<!--- User login or password is incorrect --->
 				<cfset stResult.authenticated = false />
 				<cfset stResult.message = "The username or password was incorrect">
+				<cfset application.fapi.getContentType("farUser").addLoginFailure(userid=stResult.userid,reason="Incorrect password") />
 			</cfif>
 		
 		</cfif>

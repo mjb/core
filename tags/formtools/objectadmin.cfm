@@ -109,7 +109,7 @@
 <cfparam name="attributes.copyUrlParams" default="#structnew()#" /><!--- if any extra params need to be passed into the copy screen need to a struct e.g paramStruct.parentid='whatever'--->
 <cfparam name="attributes.editUrlParams" default="#structnew()#" /><!--- if any extra params need to be passed into the edit screen need to a struct e.g paramStruct.parentid='whatever'--->
 
-<cfparam name="attributes.emptymessage" default="You do not currently have an content. Use the [Add] button above to begin." />
+<cfparam name="attributes.emptymessage" default="You do not currently have any content. Use the [Add] button above to begin." />
 
 <!--- Convert attributes.lCustomColumns to array of structs --->
 <cfif listLen(attributes.lCustomColumns)>
@@ -346,17 +346,13 @@
 
 				<!--- simple search --->
 				<cfoutput>
-					<cfif len(form.q) AND (structKeyExists(PrimaryPackage.stProps, "label") OR structKeyExists(PrimaryPackage.stProps, "title") OR structKeyExists(PrimaryPackage.stProps, "name"))>
+					<cfif len(form.q) AND (listLen(attributes.lFilterFields) OR structKeyExists(PrimaryPackage.stProps, "label") OR structKeyExists(PrimaryPackage.stProps, "title") OR structKeyExists(PrimaryPackage.stProps, "name"))>
 						AND ( 1=2
-							<cfif structKeyExists(PrimaryPackage.stProps, "label")>
-								OR label LIKE '%#form.q#%'
-							</cfif>
-							<cfif structKeyExists(PrimaryPackage.stProps, "title")>
-								OR title LIKE '%#form.q#%'
-							</cfif>
-							<cfif structKeyExists(PrimaryPackage.stProps, "name")>
-								OR name LIKE '%#form.q#%'
-							</cfif>
+							<cfloop list="#listPrepend(attributes.lFilterFields, "label,title,name")#" index="i">
+								<cfif structKeyExists(PrimaryPackage.stProps, i) AND listFindNoCase("string,nstring,list,uuid", PrimaryPackage.stProps[i].metadata.ftType)>
+									OR #i# LIKE '%#form.q#%'
+								</cfif>
+							</cfloop>
 						)
 					</cfif>
 				</cfoutput>
@@ -687,7 +683,7 @@
 
 
 	<!--- ONLY SHOW THE FILTERING IF WE HAVE RECORDS OR IF WE ARE ALREADY FILTERING --->
-	<cfif listLen(attributes.lFilterFields) AND (listLen(HTMLfiltersAttributes) OR stRecordset.q.recordCount)>
+	<cfif listLen(attributes.lFilterFields) AND attributes.lFilterFields neq "label">
 		<ft:form Name="#attributes.name#Filter" Validation="#attributes.bFilterValidation#">	
 			<cfif NOT (isDefined("request.fc.inwebtop") AND request.fc.inwebtop eq 1)>
 				<ft:button type="button" value="Filter" icon="icon-search" class="small" priority="primary" style="" text="#application.rb.getResource('objectadmin.messages.Filtering@text','Show Filter')#" onclick="$j('##filterForm').toggle('blind');" />
@@ -716,12 +712,12 @@
 	<cfif isDefined("request.fc.inwebtop") AND request.fc.inwebtop eq 1>
 		<cfoutput>
 			<form id="farcry-objectadmin-form" action="" method="post" class="input-prepend input-append pull-right" style="position: relative; z-index:2">
-				<cfif len(attributes.lFilterFields)>
+				<cfif len(attributes.lFilterFields) AND attributes.lFilterFields neq "label">
 					<button type="button" class="btn fc-tooltip" onclick="$j('##filterForm').toggle('blind'); " style="height: 30px; border-radius:0" data-toggle="tooltip" data-placement="top" title="" data-original-title="Advanced Filtering"><b class="icon-filter only-icon"></b></button>
 				</cfif>
 				<input id="farcry-objectadmin-q" name="q" class="span2" type="text" placeholder="Search..." value="#form.q#" style="width: 240px;">
 				<cfif len(form.q)>
-					<button type="button" class="btn" onclick="javascript: $j('##farcry-objectadmin-q').val(''); $j('##farcry-objectadmin-form').submit();" style="height: 30px; border-radius:0; font-size: 20px; font-weight: bold; padding: 4px 10px;">&times;</button>
+					<button type="button" class="btn" onclick="$j('##farcry-objectadmin-q').val(''); $j('##farcry-objectadmin-form').submit();" style="height: 30px; border-radius:0; font-size: 20px; font-weight: bold; padding: 4px 10px;">&times;</button>
 				</cfif>
 				<button type="submit" class="btn" style="height: 30px; border-radius:0"><b class="icon-search only-icon"></b></button>
 			</form>				
@@ -1012,7 +1008,7 @@
 				</cfif>
 				
 				
-				<cfset stObjectAdminData = getObjectAdminData(st="#st#", typename="#attributes.typename#", stPermissions="#stPermissions#") />
+				<cfset stObjectAdminData = getObjectAdminData(st=duplicate(st), typename="#attributes.typename#", stPermissions="#stPermissions#") />
 				<cfset st = application.fapi.structMerge(st,stObjectAdminData) />
 
 

@@ -50,7 +50,8 @@ TYPE PROPERTIES
 	<cfproperty name="notes" type="longchar" default="" required="no" hint="Additional notes" ftSeq="51" ftType="longchar" ftLabel="Notes" />
     
 	<cfproperty name="wddxPersonalisation" type="longchar" default="" required="no" hint="WDDX packet containing a user's personalisation settings." ftLabel="Personalization settings">
-	
+	<cfproperty name="lastLogin" type="datetime" hint="The last login date of this user" />
+
 <!------------------------------
 OBJECT METHODS
 -------------------------------->
@@ -124,6 +125,7 @@ OBJECT METHODS
 		
 		<cfset var combinedUsername = "#arguments.username#_#arguments.ud#" />
 		<cfset var profileID = "" />
+		<cfset var qProfile	= '' />
 		
 		<!--- Use the  --->
 		<cfquery name="qProfile" datasource="#application.dsn#">

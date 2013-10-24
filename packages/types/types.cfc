@@ -106,6 +106,10 @@ default handlers
 		<cfargument name="path" type="string" required="false" />
 	
 		<cfset var result = "" />
+		<cfset var pos	= '' />
+		<cfset var count	= '' />
+		<cfset var templateContent	= '' />
+		
 		<cfif NOT structKeyExists(arguments, "path")>
 			<cfif len(arguments.typename) AND len(arguments.template)>
 				<cfset arguments.path = getWebskinPath(typename=arguments.typename, template=arguments.template) />
@@ -115,13 +119,13 @@ default handlers
 		</cfif>
 		
 		<cfif len(arguments.path) and fileExists(Expandpath(arguments.path))>
-			<cffile action="READ" file="#Expandpath(arguments.path)#" variable="template">
+			<cffile action="READ" file="#Expandpath(arguments.path)#" variable="templateContent">
 		
-			<cfset pos = findNoCase('@@displayname:', template)>
+			<cfset pos = findNoCase('@@displayname:', templateContent)>
 			<cfif pos GT 0>
 				<cfset pos = pos + 14>
-				<cfset count = findNoCase('--->', template, pos)-pos>
-				<cfset result = listLast(mid(template,  pos, count), ":")>
+				<cfset count = findNoCase('--->', templateContent, pos)-pos>
+				<cfset result = listLast(mid(templateContent,  pos, count), ":")>
 			</cfif>	
 		</cfif>
 		
@@ -143,7 +147,9 @@ default handlers
 		<cfset var qMetadata = queryNew("objectID") />
 		<cfset var lFieldSets = "" />
 		<cfset var iFieldset = "" />
-		
+		<cfset var qFieldSets	= '' />
+		<cfset var qFieldset	= '' />
+
 		<farcry:deprecated message="types.display() should no longer be used. For the default view of an object, create a displayPageStandard webskin." />
 
 		<cfset qMetadata = application.types[stobj.typename].qMetadata >
@@ -257,6 +263,7 @@ default handlers
 		<cfset var stresult_friendly = StructNew()>
 		<cfset var stObj = structnew() />
 		<cfset var fnStatusChange = "" />
+		<cfset var stAfterSave	= '' />
 		
 		<cfimport taglib="/farcry/core/tags/farcry/" prefix="farcry" />
 		
@@ -377,6 +384,7 @@ default handlers
 		<cfset var typename = "" />
 		<cfset var thisfield = "" />
 		<cfset var stFP = structnew() />
+		<cfset var stFixed	= '' />
 		
 		<cfif structkeyexists(arguments.stProperties,"typename")>
 			<cfset typename = arguments.stProperties.typename />
@@ -584,7 +592,9 @@ default handlers
 		<cfset var stPackage = structNew() />
 		<cfset var oType = "" />
 		<cfset var resultHTML = "" />
-		
+		<cfset var oFieldType	= '' />
+		<cfset var FieldMethod	= '' />
+		<cfset var key	= '' />
 		
 		
 		<cfif structKeyExists(arguments, "stobject") and structKeyExists(arguments.stobject, "objectid")>
@@ -762,7 +772,7 @@ default handlers
 
 		<cfset stProperties.datetimelastupdated = now() />
 		
-		<cfreturn stProperties>
+		<cfreturn arguments.stProperties>
 	</cffunction>
 	
 	
@@ -811,7 +821,11 @@ default handlers
 		<cfset var iWizardStep = "" />
 		<cfset var lFieldSets = "" />
 		<cfset var iFieldSet = "" />
-		
+		<cfset var qwizardSteps	= '' />
+		<cfset var qwizardStep	= '' />
+		<cfset var qFieldSets	= '' />
+		<cfset var qFieldset	= '' />
+
 		<!--- 
 			Always locking at the beginning of an edit 
 			Forms need to be manually unlocked. Wizards will unlock automatically.
@@ -1477,6 +1491,9 @@ default handlers
 		<cfset var stproperties = structNew()>
 		<cfset var stobj = getdata(objectid=instance.stobj.objectid)>
 		<cfset var stlocal = structnew()>
+		<cfset var fuoid	= '' />
+		<cfset var stresult_friendly	= '' />
+
 		<cfset stproperties.objectid = instance.stobj.objectid>
 		<cfset stproperties.status = "approved">
 		<cfset setData(stproperties=stproperties)>
@@ -1593,9 +1610,9 @@ default handlers
 		<cfset var name = "" />
 		<cfset var q = queryNew("value,name") />
 		<cfset var lResult =  "" />
-		
-		<cfset objProfile = CreateObject("component",application.types.dmprofile.packagepath)>
-		<cfset returnstruct = objProfile.fListProfileByPermission("Admin")>
+		<cfset var objProfile	= CreateObject("component",application.types.dmprofile.packagepath) />
+		<cfset var returnstruct	= objProfile.fListProfileByPermission("Admin") />
+
 		<cfif returnstruct.bSuccess>
 			<cfset q = returnstruct.queryObject>
 	
@@ -1660,6 +1677,7 @@ default handlers
 		
 		
 		<cfset var i = "" />
+		<cfset var stResult	= '' />
 		
 		<!--- Get the object if not passed in --->
 		<cfif not structkeyexists(arguments,"stObject")>

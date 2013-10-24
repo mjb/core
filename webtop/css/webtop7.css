@@ -114,8 +114,8 @@ a:hover {
 .farcry-header-brand a {
 	white-space: nowrap;
 	color: #000;
-	font-weight: bold;
-	font-size: 150%;
+	font-weight: normal;
+	font-size: 20px;
 }
 .farcry-header-brand img {
 	/* fit inside 150x60 */
@@ -1080,7 +1080,12 @@ body .alert {
 	background: none;
 }
 
+/* bootstrap misc */
 
+code {
+	color: #555;
+	margin: 0px 2px;
+}
 
 /* customise bootstrap forms */
 
@@ -1112,6 +1117,17 @@ legend + .control-group {
 	max-width: 440px;
 	min-width: 240px;
 }
+.controls .select2-container {
+	max-width: 454px;
+}
+.controls .select2-input {
+	min-width: 40px;
+}
+.controls .select2-container-multi .select2-choices {
+	border-color: #ccc;
+}
+
+
 .controls input.fc-datepicker {
 	max-width: 205px;
 	min-width: 208px;
@@ -1215,4 +1231,19 @@ br[style^="clear:both"] {
 #tooltip h3 {
 	font-size: 15px;
 	line-height: 18px;
+}
+
+@media print {
+	body.webtop {
+		padding-top:0;
+	}
+	
+	.farcry-header, .farcry-footer, .btn {
+		display: none;
+	}
+
+	.farcry-main {
+		border: 0 none transparent;
+		margin: 0;
+	}
 }

@@ -377,6 +377,7 @@
 		<cfset var aDiffs = this.dmp.diff_main(arguments.old,arguments.new) />
 		<cfset var i = 0 />
 		<cfset var aResult = arraynew(1) />
+		<cfset var st	= '' />
 		
 		<cfset this.dmp.diff_cleanupEfficiency(aDiffs) />
 		
