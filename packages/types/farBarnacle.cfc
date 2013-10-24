@@ -385,7 +385,9 @@
 		
 		<!--- Update object type --->
 		<cfif not structKeyExists(arguments.stProperties, "objecttype") OR not len(arguments.stProperties.objecttype)>
-			<cfset arguments.stProperties.objecttype = findType(arguments.stProperties.referenceid) />
+			<cfif structKeyExists(arguments.stProperties, "referenceid") AND len(arguments.stProperties.referenceid)>
+				<cfset arguments.stProperties.objecttype = findType(arguments.stProperties.referenceid) />
+			</cfif>
 		</cfif>
 		
 		<!--- Clear security cache --->
