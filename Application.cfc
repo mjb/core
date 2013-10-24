@@ -570,19 +570,20 @@
 		- formally /farcry/core/tags/farcry/_farcryApplication.cfm
 		----------------------------------------->
 		
+			
+		<!--- PARSE THE URL CHECKING FOR FRIENDLY URLS (url.furl) --->
+		<cfset application.fapi.addProfilePoint("Request initialisation","Parse URL") />
+		<cfif refindnocase("/index.cfm$",cgi.script_name)>
+			<cfset structAppend(url, application.fc.factory.farFU.parseURL(),true) />
+		</cfif>
+		
+		
 		<!--- project and plugin request processing --->
 		<cfset application.fapi.addProfilePoint("Request initialisation","Server specific request scope") />
 		<cfif application.sysInfo.bServerSpecificRequestScope>
 			<cfloop from="1" to="#arraylen(application.sysinfo.aServerSpecificRequestScope)#" index="i">
 				<cfinclude template="#application.sysinfo.aServerSpecificRequestScope[i]#" />
 			</cfloop>
-		</cfif>
-		
-			
-		<!--- PARSE THE URL CHECKING FOR FRIENDLY URLS (url.furl) --->
-		<cfset application.fapi.addProfilePoint("Request initialisation","Parse URL") />
-		<cfif refindnocase("/index.cfm$",cgi.script_name) and not refindnocase("^" & application.url.webtop,cgi.script_name)>
-			<cfset structAppend(url, application.fc.factory.farFU.parseURL(),true) />
 		</cfif>
 		
 
