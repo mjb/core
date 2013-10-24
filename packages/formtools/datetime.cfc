@@ -301,6 +301,8 @@
 								$j('###arguments.fieldname#').datepicker({
 								    format: '#jsDateFormatMask#',
 								    autoclose: true
+								}).on('changeDate', function(ev){
+								    $j('###arguments.fieldname#').trigger('change');
 								});
 							</cfoutput>
 						</skin:onReady>
