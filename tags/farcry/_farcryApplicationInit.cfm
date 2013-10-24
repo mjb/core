@@ -138,7 +138,8 @@ test for the existance of each and act accordingly
 <!--- Initialize the Friendly URL Alias in the farcry application namespace --->
 <cfset application.fc.factory.farFU = createObject("component", application.stcoapi["farFU"].packagePath).onAppInit() />
 
-
+<!--- THIS NEEDS TO BE SET FOR getConfig BELOW THAT USES THE REQUEST SCOPE --->
+<cfset application.security.initRequestMode() />
 
 <!--- Load config data --->
 <cfset oConfig = createobject("component",application.stCOAPI.farConfig.packagepath) />
@@ -188,8 +189,6 @@ Build NavIDs from Navigation Nodes
 <cfparam name="application.sysInfo.machineName" default="#oSysInfo.getMachineName()#" />
 <cfparam name="application.sysInfo.instanceName" default="#oSysInfo.getInstanceName()#" />
 <cfparam name="application.sysInfo.farcryVersionTagLine" default="#oSysInfo.getVersionTagline()#" />
-<cfparam name="application.sysInfo.version" default="#oSysInfo.getCoreVersion()#" />
-<cfparam name="application.sysInfo.engine" default="#oSysInfo.getServerVersion()#" />
 <cfparam name="application.sysInfo.version" default="#oSysInfo.getCoreVersion()#" />
 <cfparam name="application.sysInfo.engine" default="#oSysInfo.getServerVersion()#" />
 <cfparam name="application.sysinfo.bwebtopaccess" default="true" type="boolean" />
