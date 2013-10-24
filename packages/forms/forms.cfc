@@ -70,6 +70,34 @@
 		</ft:form>
 	</cffunction>
 	
+	
+		
+
+	<cffunction name="delete" access="public" hint="Basic delete method for form objects." returntype="struct" output="false">
+		<cfargument name="objectid" required="yes" type="UUID" hint="Object ID of the object being deleted">
+		<cfargument name="user" type="string" required="true" hint="Username for object creator" default="">
+		<cfargument name="auditNote" type="string" required="true" hint="Note for audit trail" default="">
+		
+		<cfreturn deleteData(argumentCollection="#arguments#")>
+		
+	</cffunction>
+				
+	<cffunction name="deleteData" access="public" output="false" returntype="struct" hint="Delete the specified objectid and corresponding data, including array properties and refObjects.">
+		<cfargument name="objectid" type="uuid" required="true">
+		<cfargument name="dsn" type="string" required="false" default="#application.dsn#">
+		<cfargument name="dbowner" type="string" required="false" default="#ucase(application.dbowner)#">
+	
+		<cfset var stResult = "">
+
+		<cfparam name="session.TempObjectStore" default="#structnew()#" />
+		
+		<cfset structDelete(Session.TempObjectStore, arguments.objectid) />
+		
+		<cfreturn application.fapi.success("object deleted") />
+		
+	</cffunction>
+	
+		
 	<cffunction name="createData" access="public" returntype="any" output="false" hint="Creates an instance of an object">
 		<cfargument name="stProperties" type="struct" required="true" hint="Structure of properties for the new object instance">
 		<cfargument name="user" type="string" required="true" hint="Username for object creator" default="">
