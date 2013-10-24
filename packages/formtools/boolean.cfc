@@ -38,10 +38,8 @@
 		
 		<cfsavecontent variable="html">
 			<cfoutput>
-			<div class="multiField">
-				<input type="checkbox" name="#arguments.fieldname#" id="#arguments.fieldname#" value="1" class="checkboxInput #arguments.stMetadata.ftclass#" style="#arguments.stMetadata.ftstyle#" <cfif arguments.stMetadata.value EQ 1>checked</cfif> />
+				<input type="checkbox" name="#arguments.fieldname#" id="#arguments.fieldname#" ft:property="#arguments.stMetadata.name#" value="1" class="checkboxInput #arguments.stMetadata.ftclass#" style="#arguments.stMetadata.ftstyle#" <cfif arguments.stMetadata.value EQ 1>checked</cfif> />
 				<input type="hidden" name="#arguments.fieldname#" value="0" />
-			</div>
 			</cfoutput>
 		
 		</cfsavecontent>
@@ -91,7 +89,7 @@
 	FILTERING FUNCTIONS
 	 ------------------>	
 	<cffunction name="getFilterUIOptions">
-		<cfreturn "is true,is false" />
+		<cfreturn "is" />
 	</cffunction>
 	
 	<cffunction name="editFilterUI">
@@ -108,6 +106,20 @@
 		
 		<cfset var resultHTML = "" />
 		
+		<cfsavecontent variable="resultHTML">
+			
+			<cfswitch expression="#arguments.filterType#">
+				
+				<cfcase value="is">
+					<cfparam name="arguments.stFilterProps.value" default="" />
+					<cfoutput>
+					<input type="string" name="#arguments.fieldname#value" value="#arguments.stFilterProps.value#" />
+					</cfoutput>
+				</cfcase>
+							
+			</cfswitch>
+		</cfsavecontent>
+		
 		<cfreturn resultHTML />
 	</cffunction>
 	
@@ -116,6 +128,20 @@
 		<cfargument name="stFilterProps" />
 		
 		<cfset var resultHTML = "" />
+		
+		<cfsavecontent variable="resultHTML">
+			
+			<cfswitch expression="#arguments.filterType#">
+				
+				<cfcase value="is">
+					<cfif structKeyExists(arguments.stFilterProps, "value")>
+						<cfoutput>
+						#arguments.stFilterProps.value#
+						</cfoutput>
+					</cfif>
+				</cfcase>		
+			</cfswitch>
+		</cfsavecontent>
 		
 		<cfreturn resultHTML />
 	</cffunction>
@@ -134,19 +160,21 @@
 			
 			<cfswitch expression="#arguments.filterType#">
 				
-				<cfcase value="is true">
-					<cfoutput>#arguments.filterProperty# = 1</cfoutput>
+				<cfcase value="is">
+					<cfparam name="arguments.stFilterProps.value" default="" />
+					<cfif len(arguments.stFilterProps.value)>
+						<cfoutput>#arguments.filterProperty# = #arguments.stFilterProps.value#</cfoutput>
+					</cfif>
 				</cfcase>
-				
-				<cfcase value="is false">
-					<cfoutput>#arguments.filterProperty# = 0</cfoutput>
-				</cfcase>
-				
+			
+			
 			</cfswitch>
 			
 		</cfsavecontent>
 		
 		<cfreturn resultHTML />
 	</cffunction>
+		
+		
 		
 </cfcomponent> 
