@@ -724,7 +724,7 @@
 		
 		<cfset var result = arguments.default />
 		
-		<cfif structKeyExists(application.stCoapi, "#arguments.typename#")>
+		<cfif structKeyExists(application, "stCoapi") AND structKeyExists(application.stCoapi, "#arguments.typename#")>
 			<cfif len(arguments.md)>
 				<cfif structKeyExists(application.stCoapi['#arguments.typename#'], arguments.md)>
 					<cfset result = application.stCoapi['#arguments.typename#']['#arguments.md#'] />
