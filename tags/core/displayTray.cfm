@@ -50,7 +50,13 @@
 		<skin:loadCSS id="jquery-tooltip" />
 		<skin:loadCSS id="fc-fontawesome" />
 
-		<cfoutput>	
+		<cfif structKeyExists(url, "furl") AND len(url.furl)>
+			<cfset ajaxRefererURL = "#url.furl#">
+		<cfelse>
+			<cfset ajaxRefererURL = "#cgi.script_name#?#cgi.query_string#">
+		</cfif>
+		
+		<cfoutput>
 		<skin:onReady>
 
 		$fc.loadTray = function(){
@@ -64,7 +70,7 @@
 					$j('##farcryTray').html(data.responseText);					
 				},
 				data:{
-					refererURL:'#cgi.script_name#?#cgi.query_string#'
+					refererURL:'#ajaxRefererURL#'
 					<cfloop collection="#request.fc.trayData#" item="thistag.traydatakey">
 						<cfif issimplevalue(request.fc.trayData[thistag.traydatakey])>
 							, '#thistag.traydatakey#':'#jsstringformat(request.fc.trayData[thistag.traydatakey])#'
