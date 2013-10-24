@@ -53,7 +53,7 @@ type properties
 	ftExcludeTypes="farFU" /> 
 
 <cfproperty 
-	name="webskin" type="string" hint="The content view to be run on the selected typename" required="no" default=""
+	name="webskin" type="string" hint="The content view to be run on the selected typename. Only shows webskins with viewBinding:type & viewStack:body from selected webskinTypename." required="no" default=""
 	ftSeq="12" ftFieldset="Content" ftlabel="Content View" />
 
 <cfproperty 
@@ -94,6 +94,8 @@ type properties
 		<cfset var qWebskins = querynew("methodName,displayName","varchar,varchar") />
 		<cfset var qDisplayTypes = querynew("methodName,displayName") />
 		<cfset var thisindex = "" />
+		<cfset var displayName = "">
+		<cfset var lDisplayNames = "">
 		
 		<cfimport taglib="/farcry/core/tags/navajo" prefix="nj" />
 		
@@ -111,8 +113,10 @@ type properties
 					</cfoutput>
 					
 					<cfloop query="qWebskins">
+						<cfset displayName = application.fapi.getWebskinDisplayName(form.typename,qWebskins.methodName)>
+						<cfset lDisplayNames = listAppend(lDisplayNames, displayName)>
 						<cfoutput>
-							<option value="#qWebskins.methodName#"<cfif qWebskins.methodName eq form.value> selected="selected"</cfif>>#application.fapi.getWebskinDisplayName(form.typename,qWebskins.methodName)#</option>
+							<option value="#qWebskins.methodName#"<cfif qWebskins.methodName eq form.value> selected="selected"</cfif>>#displayName# (#qWebskins.methodName#)</option>
 						</cfoutput>
 					</cfloop>
 							
