@@ -73,6 +73,8 @@
 	<!--- validate options --->
 	<cfproperty name="ftSecure" default="false" hint="Store files securely outside of public webspace." />
 	<cfproperty name="ftDestination" default="" hint="Destination of file store relative of secure/public locations." />
+	
+	<cfproperty name="ftDisposition" default="attachment" hint="Some file types, such as PDF documents, do not use executable code and can display directly in most browsers. Use 'inline' in this case." />
 
 	<cfimport taglib="/farcry/core/tags/formtools/" prefix="ft" >
 	<cfimport taglib="/farcry/core/tags/webskin/" prefix="skin" >
@@ -333,9 +335,29 @@
 		<cfargument name="fieldname" required="true" type="string" hint="This is the name that will be used for the form field. It includes the prefix that will be used by ft:processform.">
 	
 		<cfset var html = "" />
-	
+		<cfset var stLocation = getFileLocation(argumentCollection="#arguments#")>
+		<cfset var mimetype = "">
+		
+		<cfif structKeyExists(stLocation, "mimetype")>
+			<cfset mimetype = stLocation.mimetype>
+		<cfelse>
+			<cfset mimetype = "manpage">
+		</cfif>
 		<cfsavecontent variable="html">
-			<cfoutput><a target="_blank" href="#application.url.webroot#/download.cfm?downloadfile=#arguments.stobject.objectid#&typename=#arguments.typename#&fieldname=#arguments.stmetadata.name#">#listLast(arguments.stMetadata.value,"/")#</a></cfoutput>
+			<cfoutput>
+			<table class="layout">
+			<tr>
+				<td rowspan="2" style="padding:5px;"><img src="http://www.stdicon.com/gartoon/#mimetype#?size=16" style="width:16px;height:16px;"></td>
+				<td>#listLast(arguments.stMetadata.value,"/")#</td>
+			</tr>
+			<tr>
+				<td>
+					<a href="#application.url.webroot#/download.cfm?downloadfile=#arguments.stobject.objectid#&typename=#arguments.typename#&fieldname=#arguments.stmetadata.name#&disp=inline" target="_blank">view</a>
+					<a href="#application.url.webroot#/download.cfm?downloadfile=#arguments.stobject.objectid#&typename=#arguments.typename#&fieldname=#arguments.stmetadata.name#&disp=attachment">download</a>
+				</td>
+			</tr>
+			</table>
+			</cfoutput>
 		</cfsavecontent>
 		
 		<cfreturn html>
@@ -373,7 +395,7 @@
 					uploadField="#stMetadata.FormFieldPrefix##stMetadata.Name#NEW",
 					destination=arguments.stMetadata.ftDestination,
 					secure=arguments.stMetadata.ftSecure,
-					status=iif(structkeyexists(stObj,"status"),"stObj.status",""""),
+					status=iif(structkeyexists(stObj,"status"),"stObj.status","''"),
 					allowedExtensions=arguments.stMetadata.ftAllowedFileExtensions,
 					sizeLimit=arguments.stMetadata.ftMaxsize,
 					bArchive=application.stCOAPI[arguments.typename].bArchive and (not structkeyexists(arguments.stMetadata,"ftArchive") or arguments.stMetadata.ftArchive),
