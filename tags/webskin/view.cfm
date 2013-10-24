@@ -14,6 +14,7 @@
 	<cfparam name="attributes.objectid" default=""><!--- used to get an existing object --->
 	<cfparam name="attributes.key" default=""><!--- use to generate a new object --->
 	<cfparam name="attributes.template" default=""><!--- can be used as an alternative to webskin. Best practice is to use webskin. --->
+	<cfparam name="attributes.view" default=""><!--- the webskin to be called with the object --->
 	<cfparam name="attributes.webskin" default=""><!--- the webskin to be called with the object --->
 	<cfparam name="attributes.onExitProcess" default="" />
 	<cfparam name="attributes.stProps" default="#structNew()#">
@@ -30,8 +31,10 @@
 	<cfparam name="attributes.bIgnoreSecurity" default="false" /><!--- Should the getView() ignore webskin security --->
 	<cfparam name="attributes.bAllowTrace" default="true" /><!--- Sometimes having webskin trace information can break the integrity of a page. This allows you to turn it off. --->
 	<!--- <cfparam name="attributes.alternateHTML" default="" /> ---><!--- If the webskin template does not exist and alternateHTML is provided, it is outputed instead --->
+	<cfparam name="attributes.ftWrapElement" default="" /><!--- the element type to wrap around the webskin. This can be a struct containing at minimum, a key of 'type' --->
+	<cfparam name="attributes.ftWatchFields" default="" /><!--- the fields of this objectid to watch and refresh webskin if they change. --->
 	
-	<cfset lAttributes = "stobject,typename,objectid,key,template,webskin,stprops,stparam,r_html,r_objectid,hashKey,alternateHTML,onExitProcess,dsn,bAjax,ajaxID,ajaxShowloadIndicator,ajaxindicatorText,ajaxURLParameters,bIgnoreSecurity,bAllowTrace" />
+	<cfset lAttributes = "stobject,typename,objectid,key,template,view,webskin,stprops,stparam,r_html,r_objectid,hashKey,alternateHTML,onExitProcess,dsn,bAjax,ajaxID,ajaxShowloadIndicator,ajaxindicatorText,ajaxURLParameters,bIgnoreSecurity,bAllowTrace,ftWrapElement" />
 	<cfset attrib = "" />
 	
 	<!--- Setup custom attributes passed into view in stParam structure --->
@@ -47,14 +50,21 @@
 	<cfif len(attributes.template)>
 		<cfset attributes.webskin = attributes.template />
 	</cfif>
+	<cfif len(attributes.view)>
+		<cfset attributes.webskin = attributes.view />
+	</cfif>
 	
 	<cfif not len(attributes.typename)>
 		<cfif structKeyExists(attributes.stObject, "typename")>
 			<cfset attributes.typename = attributes.stobject.typename />
 		<cfelseif len(attributes.objectid)>
 			<cfset attributes.typename = application.coapi.coapiUtilities.findType(objectid=attributes.objectid) />
+		<cfelseif structKeyExists(CALLER, "stobj")>
+			<cfset attributes.objectid = CALLER.stobj.objectid>
+			<cfset attributes.typename = CALLER.stobj.typename>
 		</cfif>
 	</cfif>
+	
 	
 	<cfif not len(attributes.typename)>
 		<cfset application.fapi.throw(message="invalid typename passed or could not be determined.") />
@@ -147,6 +157,40 @@
 		</cfif>	
 	</cfif>	
 	</cfsilent>
+	
+	<cfif NOT request.mode.ajax AND (isStruct(attributes.ftWrapElement) OR len(attributes.ftWrapElement) )>
+		
+		<cfif NOT isStruct(attributes.ftWrapElement)>
+			<cfset attributes.ftWrapElement = { 'elementType'='#attributes.ftWrapElement#' }>
+		</cfif>
+		
+		<cfset attributes.ftWrapElement['ft:typename'] = attributes.typename>
+		<cfset attributes.ftWrapElement['ft:objectid'] = attributes.objectid>
+		<cfset attributes.ftWrapElement['ft:webskin'] = attributes.webskin>
+		
+		<cfparam name="attributes.ftWrapElement.class" default="">
+		<cfset attributes.ftWrapElement.class = listPrepend(attributes.ftWrapElement.class, 'webskin-wrap', ' ')>
+		
+		<cfif structKeyExists(attributes.ftWrapElement, "elementType")>
+			<cfsavecontent variable="html">
+				
+				<cfoutput><#attributes.ftWrapElement['elementType']# ft:watchFields="#attributes.ftWatchFields#"</cfoutput>
+				
+				<cfloop list="#structKeyList(attributes.ftWrapElement)#" index="iAttribute">
+					<cfif iAttribute NEQ "elementType">
+						<cfoutput> #iAttribute#='#attributes.ftWrapElement[iAttribute]#'</cfoutput>
+					</cfif>
+				</cfloop>
+				
+				<cfoutput>></cfoutput>
+				
+				<cfoutput>#html#</cfoutput>
+				
+				<cfoutput></#attributes.ftWrapElement['elementType']#></cfoutput>
+			
+			</cfsavecontent>
+		</cfif>
+	</cfif>
 	
 	<cfif len(attributes.r_html)>
 		<cfset caller[attributes.r_html] = html />
